@@ -36,6 +36,7 @@ class connPostgres extends \BlazePHP\Struct
 	private $C      = false; // holds the connection
 	private $CHash  = null;
 	private $status = null; // Holds the connection status
+	private $result = null;
 
 	public $nodeID; // Holds the node ID for a cluster connection when applicable
 
@@ -49,7 +50,7 @@ class connPostgres extends \BlazePHP\Struct
 	 *
 	 * @return boolean - True on success, False on failure
 	 */
-	public function connect($reconnect=false)
+	public function connect()
 	{
 		$connection = implode(' ', array(
 			 'host='.    $this->hostname
@@ -65,9 +66,6 @@ class connPostgres extends \BlazePHP\Struct
 		elseif (is_resource($this->C)) {
 			pg_close($this->C);
 		}
-
-
-
 
 		try {
 			$this->C = pg_connect($connection);
@@ -113,12 +111,8 @@ class connPostgres extends \BlazePHP\Struct
 	 */
 	public function prepare($sql)
 	{
+		$this->connect();
 		$this->sql = $sql;
-
-		if (!is_object($this->C) || get_class($this->C) != 'mysqli') {
-			$this->connect();
-		}
-
 		return $this->C->prepare($sql);
 	}
 
@@ -130,29 +124,28 @@ class connPostgres extends \BlazePHP\Struct
 	 * @param $sql - Valid SQL
 	 * @return Postgres Result Set on success
 	 */
-	public function query($sql)
+	public function query($sql, $debug=false)
 	{
+		$this->connect();
 		$this->sql = $sql;
 
-		if (!is_object($this->C) || get_class($this->C) != 'postgres') {
-			$this->connect();
+		if($debug) {
+			printre(array($this->C, $sql));
 		}
-		// printre($this);
-		$result = pg_query($this->C, $sql);
-		if (!$result) {
-			$error = pg_result_error($result);
+		$this->result = pg_query($this->C, $sql);
+		// printre(pg_result_error($this->result));
+		if (!$this->result) {
+			$error = pg_result_error($this->result);
 			throw new \ErrorException('Posgres Error: ['.$error."\n".'SQL: '.$sql);
 		}
-		return $result;
+
+		return $this->result;
 	}
 
 
 
-
 	/**
-	 * Wrapper for escaping a string.  The native real_escape_string takes into
-	 * account the encoding of the db table along with the characters that require
-	 * escaping.
+	 * Wrapper for escaping a string.
 	 *
 	 * @param $string - Any string
 	 * @return string - Returns the string escaped
@@ -171,6 +164,7 @@ class connPostgres extends \BlazePHP\Struct
 
 	public function begin()
 	{
+		$this->connect();
 		try {
 			pg_query($this->C, 'BEGIN');
 		}
@@ -184,6 +178,7 @@ class connPostgres extends \BlazePHP\Struct
 	}
 	public function commit()
 	{
+		$this->connect();
 		try {
 			pg_query($this->C, 'COMMIT');
 		}
@@ -197,6 +192,7 @@ class connPostgres extends \BlazePHP\Struct
 	}
 	public function rollback()
 	{
+		$this->connect();
 		try {
 			pg_query($this->C, 'ROLLBACK');
 		}
@@ -207,5 +203,95 @@ class connPostgres extends \BlazePHP\Struct
 			)));
 		}
 		return true;
+	}
+
+
+	public function listTables()
+	{
+		$this->connect();
+		$sql = array();
+		$sql[] = 'SELECT "table_name"';
+		$sql[] = 'FROM "information_schema"."tables"';
+		$sql[] = 'WHERE "table_schema"=\'public\'';
+		$sql[] = 'ORDER BY "table_name" ASC';
+		// printre(implode("\n", $sql));
+		$result = pg_query($this->C, implode(' ', $sql));
+		$tables = array();
+		while($row = pg_fetch_assoc($result)) {
+			$tables[] = $row['table_name'];
+		}
+		return $tables;
+	}
+
+	public function descTable($table)
+	{
+		$this->connect();
+
+		try {
+			$sql = array();
+			$sql[] = 'SELECT';
+			$sql[] = '  "c"."column_name"';
+			// $sql[] = ' ,"c"."data_type"';
+			$sql[] = 'FROM';
+			$sql[] = '      "information_schema"."table_constraints"       AS "tc"';
+			$sql[] = ' JOIN "information_schema"."constraint_column_usage" AS "ccu" USING ("constraint_schema", "constraint_name")';
+			$sql[] = ' JOIN "information_schema"."columns"                 AS "c"   ON "c"."table_schema"  = "tc"."constraint_schema"';
+			$sql[] = '                                                             AND "tc"."table_name"   = "c"."table_name"';
+			$sql[] = '                                                             AND "ccu"."column_name" = "c"."column_name"';
+			$sql[] = 'WHERE';
+			$sql[] = '     "tc"."constraint_type" = \'PRIMARY KEY\'';
+			$sql[] = ' AND "tc"."table_name" = \''.$table.'\'';
+			// printre(implode("\n", $sql));
+			$result = pg_query($this->C,implode(' ', $sql));
+			if(pg_num_rows($result) <= 0) {
+				// printre(implode("\n", $sql));
+				throw new \Exception( implode(' ', array(
+					 __CLASS__.'::'.__FUNCTION__
+					,'The table ['.$table.'] does not have a primary key.'
+				)));
+			}
+			$primaryKeyFields = array();
+			while($row = pg_fetch_assoc($result)) {
+				$primaryKeyFields[] = $row['column_name'];
+			}
+
+			$sql = array();
+			$sql[] = ' ';
+			$sql[] = 'SELECT';
+			$sql[] = '  "column_name"';
+			$sql[] = ' ,"data_type"';
+			$sql[] = ' ,"character_maximum_length"';
+			$sql[] = ' ,"is_nullable"';
+			$sql[] = ' ,"column_default"';
+			// $sql[] = ' ,*';
+			$sql[] = 'FROM';
+			$sql[] = '      "information_schema"."columns"';
+			$sql[] = 'WHERE';
+			$sql[] = '     "table_name" = \''.$table.'\'';
+			// printre(implode("\n", $sql));
+
+			$result = pg_query($this->C,implode(' ', $sql));
+			if(pg_num_rows($result) <= 0) {
+				throw new Exception( implode(' ', array(
+					 __CLASS__.'::'.__FUNCTION__
+					,'The table ['.$table.'] was not found within "information_schema"."columns"'
+				)));
+			}
+			$tableDesc = array();
+			while($row = pg_fetch_assoc($result)) {
+				$tableDesc[$row['column_name']] = array(
+					 'type'        => $row['data_type']
+					,'max_length'  => $row['character_maximum_length']
+					,'is_nullable' => ($row['is_nullable'] === 'YES') ? 1 : 0
+					,'auto_increment' => (preg_match('/seq\'\:\:regclass/', $row['column_default'])) ? 1 : 0
+					,'primary_key'    => (in_array($row['column_name'], $primaryKeyFields)) ? 1 : 0
+					,'default'        => $row['column_default']
+				);
+			}
+			return $tableDesc;
+		}
+		catch(\Exception $e) {
+			return $e->getMessage();
+		}
 	}
 }

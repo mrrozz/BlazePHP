@@ -1,0 +1,7 @@
+.DS_Store
+tmp-dev
+module/mod-*
+module/object.map.php
+var/log/*.log
+var/checksum/*.checksum
+var/runtime/*.runtime

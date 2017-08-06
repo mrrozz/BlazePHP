@@ -13,29 +13,18 @@
  * @link          http://blazePHP.com
  *
  */
-namespace BlazePHP;
+namespace BlazePHP\CLI;
+use BlazePHP\CLI\Argument;
 
 
 /**
- * Globals
+ * Flag - CLI Flag object
  *
  * @author    Matt Roszyk <me@mattroszyk.com>
  * @package   Blaze.Core
  *
  */
-class Globals extends Struct
+class Flag extends Argument
 {
-	/**
-	 * Globally accessible variables
-	 */
-	public static $debug = false;
-	public static $env;
-	public static $db;
-	public static $cli;
-	public static $log;
-	public static $verbose;
-	public static $moduleMap;
-	public static $autoload = array(
-		'BlazePHP:lib'  // Map all BlazePHP namespace classes to the ABS_ROOT/lib directory
-	);
+	// No additional attributes are needed at this time.
 }

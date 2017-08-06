@@ -14,23 +14,75 @@
  *
  */
 namespace BlazePHP;
+use BlazePHP\CLI;
+use BlazePHP\Message as M;
 
 require_once(__DIR__.'/_common.init.php');
 
 class initCLI extends \BlazePHP\initCLI_common
 {
-	public function parse($cli)
+	public static function parse($cli)
 	{
 		// Add additional parameters/options here for all CLI scripts
 
 		// Configuration environment
-		$o              = new \BlazePHP\CLIOption();
+		$o              = new CLI\Option();
 		$o->long        = 'config';
 		$o->short       = 'c';
 		$o->required    = false;
 		$o->description = 'The configuration environment used to inititate this script';
+		$o->default     = 'default';
 		$cli->addOption($o);
 
-		return parent::parse($cli);
+		// CLI Option - Module
+		$o              = new CLI\Option();
+		$o->long        = 'module';
+		$o->required    = false;
+		$o->description = 'The selected module to use.';
+		$cli->addOption($o);
+
+
+
+		// Load the configuration
+		// if($cli->config !== null) {
+		// 	$configName = $cli->config;
+		// 	$configName = preg_replace('/[^A-Za-z0-9\-]/', '', $configName);
+		// 	if(!file_exists(ABS_ROOT.'/conf/'.$configName.'.conf.php')) {
+		// 		// $cli->error('The configuration ['.$configName.'] was not found.  Please review your options and try again');
+		// 		exit;
+		// 	}
+		// 	else {
+		// 		require(ABS_ROOT.'/conf/'.$configName.'.conf.php');
+		// 	}
+		// }
+
+		parent::parse($cli);
+
+		// Validate the module
+		$moduleRaw = $cli->module;
+		if(!empty($moduleRaw)) {
+			$module = preg_replace('/[^a-zA-Z0-9_\-\.]/', '', $cli->module);
+			$moduleLoc = dirname(__DIR__).'/module/mod-'.$module;
+			// printre($moduleLoc);
+			if($module != $moduleRaw || !file_exists($moduleLoc) || !is_dir($moduleLoc)) {
+				M::error('ERROR: '.'The module ['.$moduleRaw.'] specified is invalid.  Please check your option(s) and try again.', M::ADD_NEW_LINE, 'red');
+				exit;
+			}
+
+			$configRaw = $cli->config;
+			$config = preg_replace('/[^a-zA-Z0-9_\-\.]/', '', $cli->config);
+			$configLoc = dirname(__DIR__).'/module/mod-'.$module.'/conf/'.$config.'.conf.php';
+			if($config != $configRaw || !file_exists($configLoc) || is_dir($configLoc)) {
+				M::error('ERROR: '.'The configuration ['.$configRaw.'] specified is invalid.  Please check your module ['.$module.'] config and try again.', M::ADD_NEW_LINE, 'red');
+				exit;
+			}
+			else {
+				require($configLoc);
+			}
+		}
+
 	}
 }
+
+// Define the autoloader
+require_once(__DIR__.'/autoloader/CLI.autoloader.php');

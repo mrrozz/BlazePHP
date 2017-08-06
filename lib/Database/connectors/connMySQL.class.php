@@ -34,7 +34,8 @@ class connMySQL extends \BlazePHP\Struct
 	public $socket      = '/tmp/mysql.sock';
 	public $database;
 
-	private $C = false; // holds the connection
+	private $C     = false; // holds the connection
+	private $CHash = null;
 
 	public $nodeID; // Holds the node ID for a cluster connection when applicable
 
@@ -50,7 +51,14 @@ class connMySQL extends \BlazePHP\Struct
 	 */
 	public function connect()
 	{
-		if (is_object($this->C) && get_class($this->C) == 'mysqli') {
+		$hashCheck = md5(implode('', array(
+			 $this->hostname
+			,$this->username
+			,$this->password
+			,$this->database
+			,$this->port
+		)));
+		if (is_object($this->C) && get_class($this->C) == 'mysqli' && $hashCheck === $this->CHash) {
 			return true;
 		}
 		if ((integer)$this->port !== 3306 && (integer)$this->port > 0) {
@@ -71,7 +79,13 @@ class connMySQL extends \BlazePHP\Struct
 			);
 			return false;
 		}
-
+		$this->CHash = md5(implode('', array(
+			 $this->hostname
+			,$this->username
+			,$this->password
+			,$this->database
+			,$this->port
+		)));
 		return true;
 	}
 
@@ -84,12 +98,8 @@ class connMySQL extends \BlazePHP\Struct
 	 */
 	public function prepare($sql)
 	{
+		$this->connect();
 		$this->sql = $sql;
-
-		if (!is_object($this->C) || get_class($this->C) != 'mysqli') {
-			$this->connect();
-		}
-
 		return $this->C->prepare($sql);
 	}
 
@@ -103,12 +113,8 @@ class connMySQL extends \BlazePHP\Struct
 	 */
 	public function query($sql)
 	{
+		$this->connect();
 		$this->sql = $sql;
-
-		if (!is_object($this->C) || get_class($this->C) != 'mysqli') {
-			$this->connect();
-		}
-
 		$result = $this->C->query($sql);
 		if ($this->C->error) {
 			throw new \ErrorException('MySQL Error: ['.$this->C->errno.'] '.$this->C->error."\n".'SQL: '.$sql);
@@ -122,6 +128,7 @@ class connMySQL extends \BlazePHP\Struct
 	 */
 	public function getInsertID()
 	{
+		$this->connect();
 		if (isset($this->C->insert_id)) {
 			return $this->C->insert_id;
 		}
@@ -134,6 +141,7 @@ class connMySQL extends \BlazePHP\Struct
 	 **/
 	public function getAffectedRows()
 	{
+		$this->connect();
 		if (isset($this->C->affected_rows)) {
 			return $this->C->affected_rows;
 		}
@@ -150,9 +158,7 @@ class connMySQL extends \BlazePHP\Struct
 	 */
 	public function escape($string)
 	{
-		if (!is_resource($this->C)) {
-			$this->connect();
-		}
+		$this->connect();
 		return $this->C->real_escape_string($string);
 	}
 
@@ -165,9 +171,7 @@ class connMySQL extends \BlazePHP\Struct
 
 	public function autocommit($autocommit)
 	{
-		if (!is_object($this->C) || get_class($this->C) != 'mysqli') {
-			$this->connect();
-		}
+		$this->connect();
 		return $this->C->autocommit($autocommit);
 	}
 	public function commit()
@@ -182,6 +186,38 @@ class connMySQL extends \BlazePHP\Struct
 	public function getLastError()
 	{
 		return $this->C->error;
+	}
+
+
+
+	public function listTables()
+	{
+		$this->connect();
+		$results = $this->query('SHOW TABLES');
+		$tables = array();
+		while($row = $results->fetch_array()) {
+			$tables[] = $row[0];
+		}
+		return $tables;
+	}
+
+	public function descTable($table)
+	{
+		$this->connect();
+		$results = $this->query('DESC `'.$table.'`');
+		$tableDesc = array();
+		while($row = $results->fetch_assoc()) {
+			$tableDesc[$row['Field']] = array(
+				 'type'           => $row['Type']
+				,'max_length'     => null
+				,'is_nullable'    => ($row['Null'] === 'YES') ? 1 : 0
+				,'auto_increment' => (preg_match('/auto_increment/', $row['Extra'])) ? 1 : 0
+				,'primary_key'    => (preg_match('/PRI/', $row['Key'])) ? 1 : 0
+				,'default'        => $row['Default']
+			);
+		}
+
+		return $tableDesc;
 	}
 
 }

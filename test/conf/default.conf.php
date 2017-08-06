@@ -14,6 +14,7 @@
  *
  */
 namespace BlazePHP;
+use \BlazePHP\Globals as G;
 
 require_once(__DIR__.'/_common.conf.php');
 
@@ -28,7 +29,7 @@ class DatabaseConfig
 		$this->test_mysql = new \stdClass();
 		$this->test_mysql->master = \BlazePHP\Database\ConnectionBoss::build('MySQL');
 		$this->test_mysql->master->type     = 'mysql';
-		$this->test_mysql->master->hostname = '127.0.0.1';
+		$this->test_mysql->master->hostname = 'vm2';
 		$this->test_mysql->master->port     = '3306';
 		$this->test_mysql->master->username = 'blazephp_test';
 		$this->test_mysql->master->password = '7ab137bb326243729eeae3aabf0c6086';
@@ -48,6 +49,6 @@ class DatabaseConfig
 	}
 }
 
-\G::$db = new DatabaseConfig();
+G::$db = new DatabaseConfig();
 
-\G::$env = new EnvironmentCommon();
+G::$env = new EnvironmentCommon();

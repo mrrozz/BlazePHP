@@ -1,6 +1,6 @@
 <?php
 namespace BlazeTest;
-
+use \BlazePHP\Debug;
 use BlazeTest\TestCase;
 
 final class DebugTest extends TestCase
@@ -8,7 +8,7 @@ final class DebugTest extends TestCase
 
 	public function testInstanceCreates()
 	{
-		$this->assertInstanceOf(\BlazePHP\Debug::class, new \BlazePHP\Debug(__CLASS__, md5(time())));
+		$this->assertInstanceOf(Debug::class, new Debug(__CLASS__, md5(time())));
 	}
 
 }

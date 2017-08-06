@@ -1,6 +1,6 @@
 <?php
 namespace BlazeTest;
-
+use \BlazePHP\Globals as G;
 use BlazeTest\TestCase;
 
 
@@ -8,14 +8,14 @@ final class GlobalsTest extends TestCase
 {
 	public function testInstanceCreates()
 	{
-		$this->assertInstanceOf(\BlazePHP\Globals::class, new \BlazePHP\Globals());
+		$this->assertInstanceOf(G::class, new G());
 	}
 
 	public function testExceptionOnUndefinedPropertySet()
 	{
 		$this->expectException(\ErrorException::class);
 
-		$G = new \G();
+		$G = new G();
 		$G->testingBadVar = 'test'; // Invalid global variable
 	}
 
@@ -24,7 +24,7 @@ final class GlobalsTest extends TestCase
 	{
 		$this->expectException(\ErrorException::class);
 
-		$G = new \G();
+		$G = new G();
 		echo $G->testingBadVar; // Invalid global variable
 	}
 }

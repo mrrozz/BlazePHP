@@ -14,6 +14,7 @@
  *
  */
 namespace BlazePHP;
+use BlazePHP\Globals as G;
 
 
 /**
@@ -29,6 +30,7 @@ class Message extends Struct
 	public static $padChar   = '.';
 	public static $padType   = STR_PAD_RIGHT; // (STR_PAD_RIGHT, STR_PAD_LEFT, or STR_PAD_BOTH)
 
+	const LEVEL_0  = 0;
 	const LEVEL_1  = 1;
 	const LEVEL_2  = 2;
 	const LEVEL_3  = 3;
@@ -48,14 +50,14 @@ class Message extends Struct
 	public static function send($message, $level=1, $addNewLine=true, $color=null)
 	{
 		if(!empty($color)) {
-			\G::$cli->verbose(\G::$cli->colorize($message, $color), $level, $addNewLine);
+			G::$cli->verbose(G::$cli->colorize($message, $color), $level, $addNewLine);
 		}
 		else {
-			\G::$cli->verbose($message, $level, $addNewLine);
+			G::$cli->verbose($message, $level, $addNewLine);
 		}
-		// printre(\G);
-		if(isset(\G::$log) && is_object(\G::$log) && get_class(\G::$log) == '\BlazePHP\Log') {
-			\G::$log->write($level, $message, $addNewLine);
+
+		if(isset(G::$log) && is_object(G::$log) && get_class(G::$log) == 'BlazePHP\Log') {
+			G::$log->write($level, $message, $addNewLine);
 		}
 	}
 
@@ -70,13 +72,13 @@ class Message extends Struct
 	public static function error($message, $addNewLine=true, $color=null)
 	{
 		if(!empty($color)) {
-			\G::$cli->error(\G::$cli->colorize($message, $color), $addNewLine);
+			G::$cli->error(G::$cli->colorize($message, $color), $addNewLine);
 		}
 		else {
-			\G::$cli->error($message, $addNewLine);
+			G::$cli->error($message, $addNewLine);
 		}
-		if(is_object(\G::$log) && get_class($log) == '\BlazePHP\Log') {
-			\G::$log->write(1, $message);
+		if(is_object(G::$log) && get_class(G::$log) == '\BlazePHP\Log') {
+			G::$log->write(1, $message);
 		}
 	}
 
@@ -85,4 +87,3 @@ class Message extends Struct
 		return str_pad($message, self::$padLength, self::$padChar);
 	}
 }
-class_alias('\BlazePHP\Message', 'M');

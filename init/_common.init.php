@@ -1,5 +1,23 @@
 <?php
+/**
+ *
+ * BlazePHP.com - A framework for high performance
+ * Copyright 2012 - 2013, BlazePHP.com
+ *
+ * Licensed under The MIT License
+ * Any redistribution of this file's contents, both
+ * as a whole, or in part, must retain the above information
+ *
+ * @license       MIT License (http://www.opensource.org/licenses/mit-license.php)
+ * @copyright     Copyright 2012 - 2013, BlazePHP.com
+ * @link          http://blazePHP.com
+ *
+ */
+
 namespace BlazePHP;
+use BlazePHP\Globals as G;
+use BlazePHP\Message as M;
+use BlazePHP\CLI;
 
 ini_set('max_execution_time', '0');
 
@@ -14,12 +32,15 @@ require_once(ABS_ROOT.'/lib/CLI.class.php');
 require_once(ABS_ROOT.'/lib/Message.class.php');
 
 
+
+
 abstract class initCLI_common
 {
 	public static function parse($cli)
 	{
+
 		// Log output file
-		$o              = new \BlazePHP\CLIOption();
+		$o              = new CLI\Option();
 		$o->long        = 'log-file-name';
 		//$o->short       = 'L';
 		$o->required    = false;
@@ -30,7 +51,7 @@ abstract class initCLI_common
 		$cli->addOption($o);
 
 		// Log output level
-		$o              = new \BlazePHP\CLIOption();
+		$o              = new CLI\Option();
 		$o->long        = 'log-level';
 		//$o->short       = 'O';
 		$o->required    = false;
@@ -45,7 +66,7 @@ abstract class initCLI_common
 			$cli->parse();
 		}
 		catch(\Exception $e) {
-			\M::error('ERROR: '.$e->getMessage(), \M::ADD_NEW_LINE, 'red');
+			M::error('ERROR: '.$e->getMessage(), M::ADD_NEW_LINE, 'red');
 			exit;
 		}
 
@@ -55,30 +76,17 @@ abstract class initCLI_common
 			exit;
 		}
 
-		// // Load the configuration
-		// if($cli->config !== null) {
-		// 	$configName = $cli->config;
-		// 	$configName = preg_replace('/[^A-Za-z0-9\-]/', '', $configName);
-		// 	if(!file_exists(ABS_ROOT.'/conf/'.$configName.'.conf.php')) {
-		// 		$cli->error('The configuration ['.$configName.'] was not found.  Please review your options and try again');
-		// 		exit;
-		// 	}
-		// 	else {
-		// 		require(ABS_ROOT.'/conf/'.$configName.'.conf.php');
-		// 	}
-		// }
-
 
 		// Create the log if specified
 		$logFileName = $cli->logFileName;
-		$logLevel    = \G::$cli->logLevel;
+		$logLevel    = G::$cli->logLevel;
 		// printre($logFileName);
 		try {
 			if(!empty($logFileName)) {
-				\G::$log = new \BlazePHP\Log(\G::$cli->logFileName, $logLevel);
+				G::$log = new \BlazePHP\Log(G::$cli->logFileName, $logLevel);
 			}
-			else {
-				\G::$log = new \BlazePHP\Log(\G::$cli->getScriptName(), $logLevel);
+			elseif(!empty($logLevel)) {
+				G::$log = new \BlazePHP\Log(G::$cli->getScriptName(), $logLevel);
 			}
 		}
 		catch(\Exception $e) {
@@ -95,54 +103,7 @@ abstract class initCLI_common
 
 
 
-/**
- * Define the autoload method from the Environment object
- */
-spl_autoload_register(
-	function($className) {
-		$parts = explode('\\', $className);
 
-		$search  = array();
-		$replace = array();
-		if(count(\G::$autoload) > 0) {
-
-			foreach(\G::$autoload as $translate) {
-				$map = explode(':', $translate);
-				if(count($map) != 2) {
-					ob_start();
-					debug_print_backtrace();
-					$backtrace = ob_get_contents();
-					ob_clean();
-					throw new \Exception(
-						'AUTOLOADER - The G::$autoload array contains invalid data ['.$translate.'].'
-						."\n\n"
-						.$backtrace
-					);
-				}
-				$search[]  = '/'.$map[0].'/';
-				$replace[] = $map[1];
-			}
-			$path = preg_replace($search, $replace, implode('/', $parts));
-		}
-
-		if(file_exists(ABS_ROOT.'/'.$path.'.class.php')) {
-			$classLocation = ABS_ROOT.'/'.$path.'.class.php';
-		}
-		else {
-			ob_start();
-			debug_print_backtrace();
-			$backtrace = ob_get_contents();
-			ob_clean();
-			throw new \Exception(
-				'AUTOLOADER - The class ['.$className.'] does not exist.'
-				."\n\n"
-				.$backtrace
-			);
-		}
-
-		require_once($classLocation);
-	}
-);
 
 
 

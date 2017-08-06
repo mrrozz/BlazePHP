@@ -14,7 +14,7 @@
  *
  */
 namespace BlazePHP\Database;
-
+use \BlazePHP\Globals as G;
 
 /**
  * MySQL Object Multiple Column Primary class handles all entity relations with

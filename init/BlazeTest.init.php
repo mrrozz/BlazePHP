@@ -14,36 +14,39 @@
  *
  */
 namespace BlazePHP;
+use BlazePHP\CLI;
+use BlazePHP\Message as M;
+use BlazePHP\Globals as G;
 
 require_once(__DIR__.'/_common.init.php');
 
-class initCLI extends \BlazePHP\initCLI_common
+class initCLI extends initCLI_common
 {
 	public static function parse($cli)
 	{
 		// Add additional parameters/options here for all BlazeTest scripts
 
-		\G::$autoload[] = 'BlazeTest:test/lib';
+		G::$autoload[] = 'BlazeTest:test/lib';
 
 		// CLI Option - Configuration name to use for testing.
-		$o              = new \BlazePHP\CLIOption();
+		$o              = new CLI\Option();
 		$o->long        = 'config';
 		$o->short       = 'c';
 		$o->required    = false;
 		$o->default     = 'default';
 		$o->description = 'Configuration name to use for testing.';
-		\G::$cli->addOption($o);
+		G::$cli->addOption($o);
 
 		parent::parse($cli);
 
 		//
 		// Validate and load the configuration
 		//
-		$config         = preg_replace('/[^A-Za-z0-9\-]/', '', \G::$cli->config);
+		$config         = preg_replace('/[^A-Za-z0-9\-]/', '', G::$cli->config);
 		$configLocation = ABS_ROOT.'/test/conf/'.$config.'.conf.php';
 		if(!file_exists($configLocation)) {
 			$message = 'The configuration ['.$config.'] was not found.  Please review your options and try again';
-			\M::error('ERROR: '.$message, \M::ADD_NEW_LINE, 'red');
+			M::error('ERROR: '.$message, M::ADD_NEW_LINE, 'red');
 			exit;
 		}
 		else {
@@ -53,4 +56,7 @@ class initCLI extends \BlazePHP\initCLI_common
 }
 
 
-\G::$debug = true;
+G::$debug = true;
+
+// Define the autoloader
+require_once(__DIR__.'/autoloader/CLI.autoloader.php');

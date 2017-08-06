@@ -34,6 +34,26 @@ class TestCase
 		}
 	}
 
+	public function assertInteger($value)
+	{
+		if((string)(integer)$value !== (string)$value) {
+			throw new \Exception( implode(' ', array(
+				 __CLASS__.'::'.__FUNCTION__.' => '
+				,'FALSE'
+			)));
+		}
+	}
+
+	public function assertBoolean($value)
+	{
+		if(!is_bool($value)) {
+			throw new \Exception( implode(' ', array(
+				 __CLASS__.'::'.__FUNCTION__.' => '
+				,'FALSE'
+			)));
+		}
+	}
+
 	public function assertTrue($value)
 	{
 		if($value !== true) {
@@ -74,6 +94,27 @@ class TestCase
 			)));
 		}
 	}
+
+	public function assertArray($value)
+	{
+		if(!is_array($value)) {
+			throw new \Exception( implode(' ', array(
+				 __CLASS__.'::'.__FUNCTION__.' => '
+				,'FALSE'
+			)));
+		}
+	}
+
+	public function assertArrayNotEmpty($value)
+	{
+		if(!is_array($value) || (is_array($value) && count($value) <= 0)) {
+			throw new \Exception( implode(' ', array(
+				 __CLASS__.'::'.__FUNCTION__.' => '
+				,'FALSE'
+			)));
+		}
+	}
+
 
 	public function assertNull($value)
 	{

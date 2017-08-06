@@ -44,7 +44,7 @@ class Log
 
 		$this->file = ABS_VAR.'/log/'.$namePrefix.'-'.date('Y-m-d').'.log';
 		$this->fp = fopen($this->file, 'a');
-		if(false === $this->fp) {
+		if(!$this->fp) {
 			throw new Exception(
 				__CLASS__.'::'.__FUNCTION__.' - There has been an error trying to open the log file ['.$this->file.']'
 			);

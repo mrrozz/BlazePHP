@@ -1,0 +1,148 @@
+#!/usr/bin/env php
+<?php
+namespace BlazePHP;
+use \BlazePHP\Globals as G;
+use \BlazePHP\Message as M;
+use \BlazePHP\CLI;
+require(dirname(__DIR__).'/init/CLI.init.php');
+
+// Create the CLI object and pass in the arguments
+G::$cli = new CLI($argc, $argv);
+
+// CLI Option - Module type to create.
+$o              = new CLI\Option();
+$o->long        = 'module-type';
+$o->short       = 't';
+$o->required    = true;
+$o->description = 'Module type to create.  Options: [shared,cli,api,web]';
+G::$cli->addOption($o);
+
+// CLI Option - Module name
+$o              = new CLI\Option();
+$o->long        = 'module-name';
+$o->short       = 'n';
+$o->required    = true;
+$o->description = 'The name of the module to create.  The name must match the regex pattern /^[a-z][a-z_0-9]*$/ in order to be accepted.';
+G::$cli->addOption($o);
+
+// Initilize the CLI
+initCLI::parse(G::$cli);
+
+class O extends Struct
+{
+	public static $moduleType;
+	public static $moduleName;
+
+	public static $layouts;
+}
+O::$moduleType = G::$cli->moduleType;
+O::$moduleName = G::$cli->moduleName;
+
+O::$layouts = array(
+	 'shared' => array(
+		 'conf'
+		,'model'
+		,'manager'
+	)
+	,'cli' => array(
+		 'bin'
+		,'conf'
+		,'model'
+		,'manager'
+	)
+	,'api' => array(
+		 'public'
+		,'conf'
+		,'model'
+		,'manager'
+	)
+	,'www' => array(
+		 'public'
+		,'views'
+		,'conf'
+		,'model'
+		,'manager'
+	)
+);
+
+
+if(!preg_match('/^[a-z][a-z_0-9]*$/', O::$moduleName)) {
+	$message = 'ERROR: The module name ['.O::$moduleName.'] specified is invalid. The name must match the regex pattern /^[a-z][a-z_0-9]*$/ in order to be accepted.';
+	M::error($message, M::ADD_NEW_LINE, 'red');
+	exit;
+}
+if(!in_array(O::$moduleType, array_keys(O::$layouts))) {
+	$message = 'ERROR: The module type ['.O::$moduleType.'] is not valid. Options: [shared,cli,api,web].';
+	M::error($message, M::ADD_NEW_LINE, 'red');
+	exit;
+}
+
+
+$moduleLoc = ABS_ROOT.'/module/mod-'.O::$moduleName;
+
+if(file_exists($moduleLoc)) {
+	$message = 'ERROR: The module specified already exist ['.$moduleLoc.']';
+	M::error($message, M::ADD_NEW_LINE, 'red');
+	exit;
+}
+
+
+M::send('Make directory structure for the '.O::$moduleType.' module ['.O::$moduleName.']:', M::LEVEL_0, M::ADD_NEW_LINE, 'yellow');
+M::send('    mkdir '.$moduleLoc, M::LEVEL_0, M::ADD_NEW_LINE);
+mkdir($moduleLoc);
+foreach(O::$layouts[O::$moduleType] as $dir) {
+	M::send('    mkdir '.$moduleLoc.'/'.$dir, M::LEVEL_0, M::ADD_NEW_LINE);
+	mkdir($moduleLoc.'/'.$dir);
+
+	if($dir === 'conf') {
+
+		M::send('        Writing default config: ', M::LEVEL_0, M::NO_NEW_LINE);
+
+		$config = array();
+		$config[] = '<?php';
+		$config[] = 'namespace BlazePHP;';
+		$config[] = 'use BlazePHP\Globals as G;';
+		$config[] = 'use BlazePHP\Database\ConnectionBoss;';
+		$config[] = '';
+		$config[] = 'class DatabaseConfig';
+		$config[] = '{';
+		$config[] = '	public function __construct()';
+		$config[] = '	{';
+		$config[] = '		$this->load_data_config = true;';
+		$config[] = '';
+		$config[] = '		/* Sample MySQL database connection object */';
+		$config[] = '		$this->test_mysql = new \stdClass();';
+		$config[] = '		$this->test_mysql->master = \BlazePHP\Database\ConnectionBoss::build(\'MySQL\');';
+		$config[] = '		$this->test_mysql->master->hostname = \'\';';
+		$config[] = '		// $this->test_mysql->master->port     = \'3306\';';
+		$config[] = '		$this->test_mysql->master->username = \'\';';
+		$config[] = '		$this->test_mysql->master->password = \'\';';
+		$config[] = '		$this->test_mysql->master->database = \'\';';
+		$config[] = '		$this->test_mysql->slave =& $this->test_mysql->master;';
+		$config[] = '';
+		$config[] = '		/* Sample Postgres database connection object */';
+		$config[] = '		$this->test_postgres = new \stdClass();';
+		$config[] = '		$this->test_postgres->master = \BlazePHP\Database\ConnectionBoss::build(\'Postgres\');';
+		$config[] = '		$this->test_postgres->master->hostname = \'\';';
+		$config[] = '		// $this->test_postgres->master->port     = \'5432\';';
+		$config[] = '		$this->test_postgres->master->username = \'\';';
+		$config[] = '		$this->test_postgres->master->password = \'\';';
+		$config[] = '		$this->test_postgres->master->database = \'\';';
+		$config[] = '		$this->test_postgres->slave =& $this->test_postgres->master;';
+		$config[] = '	}';
+		$config[] = '}';
+		$config[] = '';
+		$config[] = '/* Initiate the database configuration */';
+		$config[] = 'G::$db = new DatabaseConfig();';
+
+		$confFh = fopen($moduleLoc.'/conf/default.conf.php', 'a');
+		fwrite($confFh, implode("\n", $config));
+		fclose($confFh);
+
+		M::send('SUCCESS', M::LEVEL_0, M::ADD_NEW_LINE, 'green');
+	}
+	else {
+		touch($moduleLoc.'/'.$dir.'/empty');
+	}
+}
+M::send('SUCCESS', M::LEVEL_0, M::ADD_NEW_LINE, 'green');

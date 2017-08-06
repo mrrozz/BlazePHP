@@ -15,22 +15,23 @@
  */
 namespace BlazePHP\Database;
 use \BlazePHP\Globals as G;
+use \BlazePHP\Struct;
 
 /**
- * MySQL Object Manager class handles all collections of MySQL objects.
+ * Postgres Object Manager class handles all collections of Postgres objects.
  *
  * @author    Matt Roszyk <me@mattroszyk.com>
  * @package   Blaze.Core
  *
  */
-class MySQLObjectManager
+class PostgresObjectManager
 {
 	protected $objectName;
 
 	protected $dbMaster;
 	protected $dbSlave;
 	protected $dbTableName;
-
+	protected $dbTablePrimaryKey;
 
 	public function __construct()
 	{
@@ -41,12 +42,12 @@ class MySQLObjectManager
 		}
 
 		$obj    = new $this->objectName;
-		//printre($obj::$__dbConnectionName);
 		$dbInfo = $obj->getManagerInfo();
 
-		$this->dbMaster    =& G::$db->{$dbInfo->dbConnectionName}->master;
-		$this->dbSlave     =& G::$db->{$dbInfo->dbConnectionName}->slave;
-		$this->dbTableName = $dbInfo->dbTableName;
+		$this->dbMaster          =& G::$db->{$dbInfo->dbConnectionName}->master;
+		$this->dbSlave           =& G::$db->{$dbInfo->dbConnectionName}->slave;
+		$this->dbTableName       = $dbInfo->dbTableName;
+		$this->dbTablePrimaryKey = $dbInfo->primaryKey;
 	}
 
 
@@ -56,18 +57,18 @@ class MySQLObjectManager
 	public function getCount(ManagerListOptions $mlo)
 	{
 		$sql = array();
-		$sql = array();
 		$sql[] = 'SELECT';
-		$sql[] = '  COUNT(1) AS `totalCount`';
+		$sql[] = '  COUNT(1) AS "totalCount"';
 		$sql[] = 'FROM';
-		$sql[] = '      `'.$this->dbTableName.'`';
+		$sql[] = '      "'.$this->dbTableName.'"';
 		$sql[] = ($mlo->conditions !== null) ? $mlo->conditions  : '';
 		if($mlo->dumpSQL) {
 			printre(implode("\n", $sql));
 		}
 
 		try {
-			$row = $this->dbSlave->query(implode(' ', $sql))->fetch_object();
+			$result = $this->dbSlave->query(implode(' ', $sql));
+			$row = pg_fetch_object($result);
 		}
 		catch(Exception $e) {
 			throw new \Exception( implode(' ', array(
@@ -98,14 +99,16 @@ class MySQLObjectManager
 			if (!is_array($fields)) {
 				$fields = array($fields);
 			}
-			$sql[] = '`'.implode('`, `', array_merge($pkFields, $fields)).'`';
+			$sql[] = '"'.implode('", "', array_merge($pkFields, $fields)).'"';
 		}
 		$sql[] = 'FROM';
 		$sql[] = $this->dbTableName;
 		$sql[] = ($conditions !== null) ? $conditions  : '';
 		if(!is_null($count) && (integer)$count > 0) {
-			$sql[] = 'LIMIT';
-			$sql[] = (string)(integer)$start.', '.(string)$count;
+			if(!preg_match('/ORDER BY/', $conditions)) {
+				$sql[] = 'ORDER BY '.implode(', ', $this->dbTablePrimaryKey);
+			}
+			$sql[] = 'LIMIT '.(string)$count.' OFFSET '.(string)(integer)$start;
 		}
 		if($dumpSQL === true) {
 			printre(implode("\n", $sql));
@@ -121,8 +124,8 @@ class MySQLObjectManager
 			)));
 		}
 		$list      = array();
-		while($row = $results->fetch_object()) {
 
+		while($row = pg_fetch_object($results)) {
 			// Build the ID key
 			$id = '';
 			foreach($pkFields as $column) {
@@ -206,6 +209,15 @@ class MySQLObjectManager
 	public function escape($string)
 	{
 		return $this->dbMaster->escape($string);
+	}
+
+	public function makeMLO()
+	{
+		return new ManagerListOptions();
+	}
+	public function makeManagerListOptions()
+	{
+		return new ManagerListOptions();
 	}
 }
 

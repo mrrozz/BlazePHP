@@ -13,6 +13,7 @@
  * @link          http://blazePHP.com
  */
 namespace BlazePHP;
+use BlazePHP\Globals as G;
 
 
 /**
@@ -27,7 +28,7 @@ namespace BlazePHP;
  * @package   Blaze.Core
  * @alias     D
  */
-if (\G::$debug === true) {
+if (G::$debug === true) {
 
 	class Debug
 	{
@@ -263,7 +264,7 @@ if (\G::$debug === true) {
 		}
 	}
 }
-elseif(\G::$debug === false) {
+elseif(G::$debug === false) {
 
 	class Debug
 	{

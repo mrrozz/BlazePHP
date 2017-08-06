@@ -1,0 +1,41 @@
+#!/usr/bin/env php
+<?php
+/**
+ *
+ * BlazePHP.com - A framework for high performance
+ * Copyright 2012 - 2015, BlazePHP.com
+ *
+ * Licensed under The MIT License
+ * Any redistribution of this file's contents, both
+ * as a whole, or in part, must retain the above information
+ *
+ * @license       MIT License (http://www.opensource.org/licenses/mit-license.php)
+ * @copyright     2012 - 2015, BlazePHP.com
+ * @link          http://blazePHP.com
+ * @package       Blaze.
+ */
+
+
+require(dirname(__DIR__).'/init/CLI.init.php');
+
+// print_r($argv);
+
+$port = (isset($argv[1])) ? $argv[1] : '8000';
+$port = (false === is_numeric($port)) ? '8000' : $port;
+
+$consoleSocket = stream_socket_server('tcp://0.0.0.0:'.$port, $errno, $errstr);
+if (!$consoleSocket) {
+  echo "$errstr ($errno)<br />\n";
+} else {
+  while ($connection = stream_socket_accept($consoleSocket, 10000000)) {
+	print('============================================================================================================');
+	print("\n");
+	print(date('Y-m-d H:i:s'));
+	print("\n");
+    print(stream_get_contents($connection));
+
+    fclose($connection);
+  }
+  fclose($consoleSocket);
+}
+?>

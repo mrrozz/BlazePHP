@@ -17,9 +17,8 @@ namespace BlazePHP\Database;
 use \BlazePHP\Globals as G;
 use \BlazePHP\Message as M;
 
-
 /**
- * MySQL Object class handles all entity relations with a specific table
+ * Postgres Object class handles all entity relations with a specific table
  *
  * @author    Matt Roszyk <me@mattroszyk.com>
  * @package   Blaze.Core
@@ -27,7 +26,7 @@ use \BlazePHP\Message as M;
  */
 define('BLAZE_OBJECT_ID_GUID', 'GUID');
 define('BLAZE_OBJECT_ID_AUTO', 'AUTO');
-class MySQLObject
+class PostgresObject
 {
 	protected $__attributeValues;
 	protected $__attributeChecksum;   // Holds a checksum of the original data per attribute
@@ -68,7 +67,7 @@ class MySQLObject
 				throw new \ErrorException(
 
 				);
-				throw new Exception(
+				throw new \Exception(
 					__CLASS__.'::'.__FUNCTION__.' - The Environtment configuration is not set to load any database configuration.'
 					.' Set Environment::load_data_config = true; and ensure you have conigured a database connection.'
 				);
@@ -76,7 +75,7 @@ class MySQLObject
 			$db = G::$db;
 
 			if (!$this::$__dbConnectionName || !isset($db->{$this::$__dbConnectionName})) {
-				throw new Exception(
+				throw new \Exception(
 					__CLASS__.'::'.__FUNCTION__.' - The $dbConnectionName ['.$this::$__dbConnectionName.'] is invalid.'
 				);
 			}
@@ -94,9 +93,9 @@ class MySQLObject
 
 		if ((integer)$id > 0) {
 			// printre('made it');
-			$result = $this->__dbSlave->query('SELECT * FROM `'.$this::$__dbTableName.'` WHERE `id`='.$id);
-			if ($result->num_rows > 0) {
-				$row = $result->fetch_assoc();
+			$result = $this->__dbSlave->query('SELECT * FROM "'.$this::$__dbTableName.'" WHERE "id"='.$id);
+			if (pg_num_rows($result) > 0) {
+				$row = pg_fetch_assoc($result);
 				foreach ($row as $attribute => $value) {
 					$this->__attributeChecksum[$attribute] = md5($value);
 					$this->__attributeValues[$attribute] = self::unpackValue($value, $this->__attributeList[$attribute]);
@@ -124,15 +123,16 @@ class MySQLObject
 
 
 	/**
-	 * Returns the database connection information needed for the MySQLObjectManager
+	 * Returns the database connection information needed for the PostgresObjectManager
 	 *
 	 * @return stdClass
 	 */
 	public function getManagerInfo()
 	{
-		$info = new stdClass();
+		$info = new \stdClass();
 		$info->dbConnectionName = $this::$__dbConnectionName;
 		$info->dbTableName      = $this::$__dbTableName;
+		$info->primaryKey       = array('id');
 		return $info;
 	}
 
@@ -209,7 +209,7 @@ class MySQLObject
 		if ($object) {
 			$objectAttributes = get_object_vars($object);
 			//$validAttributes = array_diff(array_keys($this->__attributeList), array('id'));
-			$validAttributes =& array_keys($this->__attributeList);
+			$validAttributes  = array_keys($this->__attributeList);
 
 			foreach ($objectAttributes as $name => $value) {
 				if (in_array($name, $validAttributes)) {
@@ -266,7 +266,7 @@ class MySQLObject
 					}
 
 					if($missingMethod === true) {
-						throw new Exception(
+						throw new \Exception(
 							__CLASS__.'::'.__FUNCTION__.' - The validation method does not exist ['.$validator.']'
 						);
 					}
@@ -326,7 +326,7 @@ class MySQLObject
 					}
 
 					if($missingMethod === true) {
-						throw new Exception(
+						throw new \Exception(
 							__CLASS__.'::'.__FUNCTION__.' - The custom unpacking method does not exist ['.$packer.']'
 						);
 					}
@@ -359,7 +359,7 @@ class MySQLObject
 	public function isUnique($value, $attribute, $htmlSafe=true)
 	{
 		if(!$this->isAttribute($attribute)) {
-			throw new Exception(
+			throw new \Exception(
 				__CLASS__.'::'.__FUNCTION__.' - The attribute provided is not valid ['.$attribute.']'
 			);
 		}
@@ -369,16 +369,16 @@ class MySQLObject
 		$sql[] = 'SELECT';
 		$sql[] = '  1';
 		$sql[] = 'FROM';
-		$sql[] = '      `'.$this::$__dbTableName.'`';
+		$sql[] = '      "'.$this::$__dbTableName.'"';
 		$sql[] = 'WHERE';
-		$sql[] = '     `'.$attribute.'` = '.$valuePacked;
+		$sql[] = '     "'.$attribute.'" = '.$valuePacked;
 		if(!$this->__isNew) {
-			$sql[] = ' AND `id` != '.(string)(integer)$this->__attributeValues['id'];
+			$sql[] = ' AND "id" != '.(string)(integer)$this->__attributeValues['id'];
 		}
 		$result = $this->__dbSlave->query(implode(' ', $sql));
 
 		if(false === $result) {
-			throw new Exception(
+			throw new \Exception(
 				__CLASS__.'::'.__FUNCTION__.' - '.$this->__dbMaster->error
 			);
 		}
@@ -442,7 +442,7 @@ class MySQLObject
 	public function save($debug=false)
 	{
 		if ($this->__error === true) {
-			throw new Exception(
+			throw new \Exception(
 				__CLASS__.'::'.__FUNCTION__.' - '.$this->__errorMessage
 			);
 		}
@@ -450,10 +450,15 @@ class MySQLObject
 		// handle any custom packing
 		self::customPacking('in');
 
-		$set = array();
+		// isNew === true
+		$insertColumns = array();
+		$insertValues  = array();
+		// update a record
+		$set           = array();
 
 		$newChecksumValues = array();
 
+		$index = 0;
 		foreach ($this->__attributeList as $attribute => $type) {
 
 			$value =& $this->__attributeValues[$attribute];
@@ -462,13 +467,19 @@ class MySQLObject
 			if ($this->__isNew === true) {
 
 				if (!empty($this->__attributeValues[$attribute]) || strlen($this->__attributeValues[$attribute]) > 0) {
-					$set[] = '`'.$attribute.'`='.self::packValue($value, $type);
+					// $set[] = '"'.$attribute.'"='.self::packValue($value, $type);
+					$insertColumns[$index] = $attribute;
+					$insertValues[$index] = self::packValue($value, $type);
 				}
 				else if ($attribute == 'time_created') {
-					$set[] = '`time_created`=NOW()';
+					// $set[] = '"time_created"=NOW()';
+					$insertColumns[$index] = $attribute;
+					$insertValues[$index] = 'NOW()';
 				}
 				else if ($attribute == 'time_modified') {
-					$set[] = '`time_modified`=NOW()';
+					// $set[] = '"time_modified"=NOW()';
+					$insertColumns[$index] = $attribute;
+					$insertValues[$index] = 'NOW()';
 				}
 			}
 			else {
@@ -476,34 +487,55 @@ class MySQLObject
 					self::packValue($this->__attributeValues[$attribute], $this->__attributeList[$attribute], false)
 				);
 
+				// printr(array($attribute => array('old' => $this->__attributeChecksum[$attribute], 'new' => $md5)));
+
 				if ($attribute == 'time_modified') {
-					$set[] = '`time_modified`=NOW()';
+					$set[] = '"time_modified"=NOW()';
+					// $insertColumns[$index] = $attribute;
+					// $insertValues[$index] = 'NOW()';
 				}
 				else if ($attribute == 'time_created') {
 					continue;
 				}
 				else if ($md5 != $this->__attributeChecksum[$attribute]) {
-					$set[] = '`'.$attribute.'`='.self::packValue($value, $type);
+					$set[] = '"'.$attribute.'"='.self::packValue($value, $type);
 					$newChecksumValues[$attribute] = $md5;
+					// $insertColumns[$index] = $attribute;
+					// $insertValues[$index]  = self::packValue($value, $type);
 				}
 			}
+			$index++;
 		}
 
 		if($this->__isNew === true && $this::$__idType === BLAZE_OBJECT_ID_GUID) {
-			array_unshift($set, '`id`='.Toolbox::makeGUID($this->__dbMaster->nodeID));
+			// array_unshift($set, '"id"='.Toolbox::makeGUID($this->__dbMaster->nodeID));
+			array_unshift($insertColumns, 'id');
+			array_unshift($insertValues, Toolbox::makeGUID($this->__dbMaster->nodeID));
 		}
 
 
-		if (count($set) > 0) {
+		if (count($insertColumns) > 0 || count($set) > 0) {
+			// printre($debug);
 			if ($this->__isNew === true) {
-				$sql = 'INSERT INTO `'.$this::$__dbTableName.'` SET '.implode(', ', $set);
+				// $this->__dbMaster->begin();
+				// $sql = 'INSERT INTO "'.$this::$__dbTableName.'" SET '.implode(', ', $set);
+				$sql = array();
+				$sql[] = 'INSERT INTO "'.$this::$__dbTableName.'" ("'.implode('", "', $insertColumns).'")';
+				$sql[] = 'VALUES ('.implode(', ', $insertValues).')';
 			}
 			else {
-				$sql = 'UPDATE `'.$this::$__dbTableName.'` SET '.implode(', ', $set).' WHERE `id`='.$this->id;
+				$sql = array();
+				$sql[] = 'UPDATE "'.$this::$__dbTableName.'"';
+				$sql[] = 'SET '.implode(', ', $set);
+				$sql[] = 'WHERE "id"='.$this->id;
 			}
 
-			if (false === $this->__dbMaster->query($sql)) {
-				throw new Exception(
+			if($debug === true) {
+				printre(implode("\n", $sql));
+			}
+			$sql = implode(' ', $sql);
+			if (false === $this->__dbMaster->query($sql, $debug)) {
+				throw new \Exception(
 					__CLASS__.'::'.__FUNCTION__.' - '.$this->__dbMaster->error
 				);
 			}
@@ -518,7 +550,13 @@ class MySQLObject
 
 			// Assign the ID field if it was auto generated by the database
 			if ($this->__isNew && empty($this->__attributeValues['id'])) {
-				$this->__attributeValues['id'] = $this->__dbMaster->getInsertId();
+
+				// $sql = 'SELECT currval(\''.$this::$__dbTableName.'_id_seq\')';
+				$sql = 'SELECT currval(pg_get_serial_sequence(\''.$this::$__dbTableName.'\',\'id\'))';
+				$result = $this->__dbMaster->query($sql);
+				$row = pg_fetch_assoc($result);
+				// printre($row);
+				$this->__attributeValues['id'] = $row['currval'];
 			}
 
 			// This object is no longer new
@@ -546,10 +584,10 @@ class MySQLObject
 			return false;
 		}
 
-		$sql = 'DELETE FROM `'.$this::$__dbTableName.'` WHERE `id` = '.$this->id;
+		$sql = 'DELETE FROM "'.$this::$__dbTableName.'" WHERE "id" = '.$this->id;
 
 		if (false === $this->__dbMaster->query($sql)) {
-			throw new Exception(
+			throw new \Exception(
 				__CLASS__.'::'.__FUNCTION__.' - '.$this->__dbMaster->error
 			);
 		}
@@ -596,7 +634,7 @@ class MySQLObject
 			return (float)$value;
 		}
 		else if ($type == 'boolean') {
-			return (boolean)$value;
+			return (in_array($value, array('TRUE','t','true','y','yes','on',1))) ? 'TRUE' : 'FALSE';
 		}
 		else if ($type == 'array_as_csv') {
 			return implode(',', $value);
@@ -623,11 +661,12 @@ class MySQLObject
 			//printr(get_class($value));
 			if(gettype($value) != 'object' || get_class($value) != 'DateTime') {
 				$value = new \DateTime((string)$value);
+				// printre($value->format('Y-m-d H:i:s.u'));
 			}
-			return '\''.$value->format('Y-m-d H:i:s').'\'';
+			return '\''.$value->format('Y-m-d H:i:s.u').'\'';
 		}
 
-		throw new \ErrorException('MySQLObject: The type for this value is not recognized ['.$type.'].');
+		throw new \ErrorException('PostgresObject: The type for this value is not recognized ['.$type.'].');
 	}
 
 
@@ -645,7 +684,7 @@ class MySQLObject
 	{
 		if ($type == 'object') {
 			if($value === null) {
-				return new stdClass();
+				return new \stdClass();
 			}
 			return json_decode($value);
 		}
@@ -659,7 +698,7 @@ class MySQLObject
 			return explode(',', $value);
 		}
 		else if ($type == 'timestamp' && !empty($value)) {
-			return new DateTime($value);
+			return new \DateTime($value);
 		}
 		else if ($type == 'set') {
 			if(empty($value)) {
@@ -685,7 +724,7 @@ class MySQLObject
 	public function __get($attribute)
 	{
 		if (!isset($this->__attributeList[$attribute])) {
-			throw new \ErrorException('MySQLObject Error: Trying to access an invalid attribute ['.$attribute.']');
+			throw new \ErrorException('PostgresObject Error: Trying to access an invalid attribute ['.$attribute.']');
 		}
 		if (isset($this->__attributeValues[$attribute])) {
 			return $this->__attributeValues[$attribute];
@@ -705,7 +744,7 @@ class MySQLObject
 	public function __set($attribute, $value)
 	{
 		if (!isset($this->__attributeList[$attribute])) {
-			throw new \ErrorException('MySQLObject Error: Trying to set an invalid attribute ['.$attribute.']');
+			throw new \ErrorException('PostgresObject Error: Trying to set an invalid attribute ['.$attribute.']');
 		}
 		$this->__attributeValues[$attribute] = $value;
 
@@ -756,11 +795,11 @@ class MySQLObject
 
 
 	/**
-	 * Returns the ID - This always returns the "id" column.  The MySQLObjectMultiPrimary
+	 * Returns the ID - This always returns the "id" column.  The PostgresObjectMultiPrimary
 	 *                  returns an array holding each of the primary key fields.
 	 *
 	 *                  This method is used to set the keys on an object list in the
-	 *                  MySQLObjectManager class.
+	 *                  PostgresObjectManager class.
 	 *
 	 * @return array
 	 */

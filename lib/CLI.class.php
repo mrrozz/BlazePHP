@@ -14,7 +14,8 @@
  *
  */
 namespace BlazePHP;
-
+use \BlazePHP\Globals as G;
+use \BlazePHP\CLI;
 
 /**
  * CLI
@@ -63,21 +64,21 @@ class CLI extends Struct
 		$this->scriptName = basename($argv[0]);
 
 		// Show the help text
-		$helpFlag = new CLIFlag();
+		$helpFlag = new CLI\Flag();
 		$helpFlag->long = 'help';
 		$helpFlag->short = 'h';
 		$helpFlag->description = 'Display this help text.';
 		$this->addFlag($helpFlag);
 
 		// Verbose mode enabled/disabled
-		$verboseFlag = new CLIFlag();
+		$verboseFlag = new CLI\Flag();
 		$verboseFlag->long = 'verbose';
 		$verboseFlag->short = 'v';
 		$verboseFlag->description = 'Enable verbose output, defaulting to verbose level 1'."\n".'See also --verbose-level';
 		$this->addFlag($verboseFlag);
 
 		// Set the verbose level (1-n)
-		$verboseLevelOption = new CLIOption();
+		$verboseLevelOption = new CLI\Option();
 		$verboseLevelOption->long = 'verbose-level';
 		$verboseLevelOption->short = 'V';
 		$verboseLevelOption->description = implode(' ', array(
@@ -87,7 +88,6 @@ class CLI extends Struct
 		));
 		$verboseLevelOption->default = 1;
 		$this->addOption($verboseLevelOption);
-
 	}
 
 
@@ -308,7 +308,7 @@ class CLI extends Struct
 
 
 
-	public function addFlag(CLIFlag $flag)
+	public function addFlag(CLI\Flag $flag)
 	{
 		$names = '--'.$flag->long.' -'.$flag->short;
 		$paramsHash = md5($names);
@@ -352,7 +352,7 @@ class CLI extends Struct
 
 
 
-	public function addOption(CLIOption $opt)
+	public function addOption(CLI\Option $opt)
 	{
 		$names = '--'.$opt->long.' -'.$opt->short;
 		$paramsHash = md5($names);
@@ -583,24 +583,4 @@ class CLI extends Struct
 
 		return $varName;
 	}
-}
-
-
-
-abstract class CLIArgument extends Struct
-{
-	public $long        = null;
-	public $short       = null;
-	public $description = null;
-	public $dependants  = array();
-}
-class CLIFlag extends CLIArgument
-{
-	// No additional attributes are needed at this time.
-}
-class CLIOption extends CLIArgument
-{
-
-	public $required    = false;
-	public $default     = null;
 }

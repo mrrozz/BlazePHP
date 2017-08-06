@@ -1,13 +1,18 @@
 #!/usr/bin/env php
 <?php
+namespace BlazePHP;
+use \BlazePHP\Globals as G;
+use \BlazePHP\Message as M;
+use \BlazePHP\CLI;
+use \BlazePHP\Struct;
 require(dirname(dirname(__DIR__)).'/init/BlazeTest.init.php');
 
 // Create the CLI object and pass in the arguments
-G::$cli = new \BlazePHP\CLI($argc, $argv);
+G::$cli = new CLI($argc, $argv);
 
 
 // CLI Option - Test file directory location
-$o              = new \BlazePHP\CLIOption();
+$o              = new CLI\Option();
 $o->long        = 'test-dir';
 $o->short       = 'T';
 $o->required    = false;
@@ -17,14 +22,14 @@ G::$cli->addOption($o);
 
 
 // CLI Flag - Die on error
-$f              = new \BlazePHP\CLIFlag();
+$f              = new CLI\Flag();
 $f->long        = 'die-on-error';
 $f->short       = 'D';
 $f->description = 'Die on error';
 G::$cli->addFlag($f);
 
 // CLI Option - Filter the test cases by keywords, CSV.
-$o              = new \BlazePHP\CLIOption();
+$o              = new CLI\Option();
 $o->long        = 'filter-csv';
 $o->short       = 'F';
 $o->required    = false;
@@ -34,11 +39,11 @@ G::$cli->addOption($o);
 
 
 // Initilize the CLI
-\BlazePHP\initCLI::parse(G::$cli);
+initCLI::parse(G::$cli);
 
 
 
-class O extends \BlazePHP\Struct
+class O extends Struct
 {
 	// Options/Flags
 	public static $testDir;
@@ -62,12 +67,12 @@ O::$testCases  = array();
 //
 if(!file_exists(O::$testDir)) {
 	$message = 'Error: The direcotry ['.O::$testDir.'] does not exist.';
-	\M::error('ERROR: '.$message, \M::ADD_NEW_LINE, 'red');
+	M::error('ERROR: '.$message, M::ADD_NEW_LINE, 'red');
 	exit;
 }
 else if(!is_dir(O::$testDir)) {
 	$message = 'Error: ['.O::$testDir.'] is not a valid directory';
-	\M::error('ERROR: '.$message, \M::ADD_NEW_LINE, 'red');
+	M::error('ERROR: '.$message, M::ADD_NEW_LINE, 'red');
 	exit;
 }
 
@@ -98,7 +103,7 @@ try {
 }
 catch(\Exception $e) {
 	$message = 'Error: Reading the directory ['.O::$testDir.'] has failed. '."\n".$e->getMessage();
-	\M::error('ERROR: '.$message, \M::ADD_NEW_LINE, 'red');
+	M::error('ERROR: '.$message, M::ADD_NEW_LINE, 'red');
 	exit;
 }
 
@@ -108,7 +113,7 @@ if($testCaseCount <= 0) {
 	if(!empty(O::$filterCSV)) {
 		$message .= ' Check the filters applied ['.O::$filterCSV.']';
 	}
-	\M::error('ERROR: '.$message, \M::ADD_NEW_LINE, 'red');
+	M::error('ERROR: '.$message, M::ADD_NEW_LINE, 'red');
 	exit;
 }
 
@@ -116,10 +121,10 @@ if($testCaseCount <= 0) {
 //
 // Start the test sequence with the found files
 //
-\M::sendLineBreak(\M::LEVEL_1);
+M::sendLineBreak(M::LEVEL_1);
 $message = 'Starting test sequence with ['.count(O::$testCases).'] test cases';
-\M::send($message, \M::LEVEL_1, \M::ADD_NEW_LINE);
-\M::sendLineBreak(\M::LEVEL_1);
+M::send($message, M::LEVEL_1, M::ADD_NEW_LINE);
+M::sendLineBreak(M::LEVEL_1);
 
 
 foreach(O::$testCases as $caseFile) {
@@ -134,8 +139,8 @@ foreach(O::$testCases as $caseFile) {
 		$classWords    = preg_split('/(?=[A-Z])/',$classBaseName);
 		$classLabel    = implode(' ', $classWords);
 
-		$message = '    [Begin: '.\G::$cli->colorize($classLabel, 'blue').']';
-		\M::send($message, \M::LEVEL_1, \M::ADD_NEW_LINE);
+		$message = '    [Begin: '.G::$cli->colorize($classLabel, 'blue').']';
+		M::send($message, M::LEVEL_1, M::ADD_NEW_LINE);
 
 		$ref = new \ReflectionClass(O::$case);
 		$methods = $ref->getMethods();
@@ -149,18 +154,18 @@ foreach(O::$testCases as $caseFile) {
 
 
 				$message = '        '.str_pad((string)$testNo++, 4, ' ', STR_PAD_LEFT).': '.$methodLabel.' -> ';
-				\M::$padLength = 60;
-				\M::send(\M::pad($message), \M::LEVEL_1, \M::NO_NEW_LINE);
+				M::$padLength = 60;
+				M::send(M::pad($message), M::LEVEL_1, M::NO_NEW_LINE);
 
 				try {
 					O::$case->executeTest($method->name);
-					\M::send(' SUCCESS', \M::LEVEL_1, \M::ADD_NEW_LINE, 'green');
+					M::send(' SUCCESS', M::LEVEL_1, M::ADD_NEW_LINE, 'green');
 				}
 				catch(\Exception $e) {
 
 					$message = 'FAIL, Reason: '.$e->getMessage();
-					\M::send($message, \M::LEVEL_1, \M::ADD_NEW_LINE);
-					\M::sendLineBreak(\M::LEVEL_1);
+					M::send($message, M::LEVEL_1, M::ADD_NEW_LINE);
+					M::sendLineBreak(M::LEVEL_1);
 
 					if(O::$dieOnError === true) {
 						exit;
@@ -169,8 +174,8 @@ foreach(O::$testCases as $caseFile) {
 			}
 		}
 
-		$message = '    [End:   '.\G::$cli->colorize($classLabel, 'yellow').']';
-		\M::send($message, \M::LEVEL_1, \M::ADD_NEW_LINE);
+		$message = '    [End:   '.G::$cli->colorize($classLabel, 'yellow').']';
+		M::send($message, M::LEVEL_1, M::ADD_NEW_LINE);
 	}
 	catch(\Exception $e) {
 		printre($e->getMessage());

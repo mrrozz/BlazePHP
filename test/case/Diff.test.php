@@ -1,6 +1,6 @@
 <?php
 namespace BlazeTest;
-
+use BlazePHP\Diff;
 use BlazeTest\TestCase;
 
 final class DiffTest extends TestCase
@@ -20,12 +20,12 @@ final class DiffTest extends TestCase
 			}
 		}
 
-		$this->assertInstanceOf(\BlazePHP\Diff::class, new \BlazePHP\Diff($this->log1->fileLocation(), $this->log2->fileLocation()));
+		$this->assertInstanceOf(Diff::class, new Diff($this->log1->fileLocation(), $this->log2->fileLocation()));
 	}
 
 	public function testDiffOutput()
 	{
-		$diff = new \BlazePHP\Diff($this->log1->fileLocation(), $this->log2->fileLocation());
+		$diff = new Diff($this->log1->fileLocation(), $this->log2->fileLocation());
 		$this->assertNotEmpty($diff->read());
 	}
 

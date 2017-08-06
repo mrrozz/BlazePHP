@@ -1,0 +1,759 @@
+#!/usr/bin/env php
+<?php
+/**
+ *
+ * BlazePHP.com - A framework for high performance
+ * Copyright 2012 - 2015, BlazePHP.com
+ *
+ * Licensed under The MIT License
+ * Any redistribution of this file's contents, both
+ * as a whole, or in part, must retain the above information
+ *
+ * @license       MIT License (http://www.opensource.org/licenses/mit-license.php)
+ * @copyright     2012 - 2015, BlazePHP.com
+ * @link          http://blazePHP.com
+ * @package       Blaze.
+ */
+namespace BlazePHP;
+use \BlazePHP\Globals as G;
+use \BlazePHP\Message as M;
+use \BlazePHP\CLI;
+
+// Include the CLI init
+require(dirname(__DIR__).'/init/CLI.init.php');
+
+// Create the CLI object and pass in the arguments
+G::$cli = new CLI($argc, $argv);
+
+// CLI Option - Database config for the models
+$o              = new CLI\Option();
+$o->long        = 'db-config-model';
+$o->short       = 'd';
+$o->required    = false;
+$o->default     = 'default';
+$o->description = 'The name of the database configuration that is used by the models created.  This is possibly different than the db-config-admin, as some database systems do not allow the required access needed to build a model with the user account(s) created that the software uses in production.';
+G::$cli->addOption($o);
+
+// CLI Option - Database config for makemodels
+$o              = new CLI\Option();
+$o->long        = 'db-config-admin';
+$o->short       = 'd';
+$o->required    = false;
+$o->default     = 'default';
+$o->description = 'The name of the database configuration that is used to generate the models/managers.';
+G::$cli->addOption($o);
+
+// CLI Option - Table list
+$o              = new CLI\Option();
+$o->long        = 'table-list';
+$o->short       = 't';
+$o->required    = false;
+$o->default     = null;
+$o->description = 'A comma separated list of table names to create models for';
+G::$cli->addOption($o);
+
+// CLI Option - -m --models-dir=[ARG]      Any relative or absolute directory path
+$o              = new CLI\Option();
+$o->long        = 'models-dir';
+$o->short       = 'm';
+$o->required    = false;
+$o->description = 'Any relative or absolute directory path to create the models within.  This is an override for [{MODULE}/model]';
+G::$cli->addOption($o);
+
+// CLI Option - -m --managers-dir=[ARG]      Any relative or absolute directory path
+$o              = new CLI\Option();
+$o->long        = 'managers-dir';
+$o->required    = false;
+$o->description = 'Any relative or absolute directory path to create the maagers within.  This is an override for [{MODULE}/manager]';
+G::$cli->addOption($o);
+
+// CLI Option - -f --force-overwrite       With this set, the files at the destination will be overwritten
+$f              = new CLI\Flag();
+$f->long        = 'force-overwrite';
+$f->short       = 'f';
+$f->description = 'With this set, the files at the destination will be overwritten';
+G::$cli->addFlag($f);
+
+// CLI Flag - -M --make-managers
+$f              = new CLI\Flag();
+$f->long        = 'make-managers';
+$f->description = 'Make the managers for each of the models';
+G::$cli->addFlag($f);
+
+// CLI Flag - Make the developer models
+$f              = new CLI\Flag();
+$f->long        = 'make-developer-models';
+$f->description = 'Make the developer models. The system models are inherited by the developer models.  This is where custom model code resides and will only be overwritten if this flag is set.';
+G::$cli->addFlag($f);
+
+// CLI Option - -p --sys-class-prefix
+$o              = new CLI\Option();
+$o->long        = 'sys-class-prefix';
+$o->short       = 'p';
+$o->required    = false;
+$o->default     = 'sys_';
+$o->description = 'Prefix the system class names with this string '."\n".'/^[a-zA-Z_][a-zA-Z0-9_]*$/'."\n".' This is used to generate non-editable system files that are inherited by a child user-editable class (see --user-class-dir)';
+G::$cli->addOption($o);
+
+// CLI Option - Namespace
+$o              = new CLI\Option();
+$o->long        = 'namespace';
+$o->short       = 'N';
+$o->required    = false;
+$o->default     = null;
+$o->description = 'Define the namespace to use for all of the class files created.';
+G::$cli->addOption($o);
+
+// CLI Option - Database table name prefix to be prepended to each of the class defined tables.
+$o              = new CLI\Option();
+$o->long        = 'table-prefix';
+$o->short       = 'P';
+$o->required    = false;
+$o->default     = null;
+$o->description = 'Database table name prefix to be prepended to each of the class defined tables.';
+G::$cli->addOption($o);
+
+// CLI Flag - Omit the treatment of text fields as JSON objects
+$f              = new CLI\Flag();
+$f->long        = 'omit-text-fields-as-json';
+$f->description = 'Omit the treatment text fields as JSON objects.  By default, BlazePHP treats any text field as a JSON object on storage.  To override this, set this flag.  This is useful when building models for existing software that does not use the text fields in the same way.';
+G::$cli->addFlag($f);
+
+// Initilize the CLI
+initCLI::parse(G::$cli);
+
+class O extends Struct
+{
+	public static $tables;
+	public static $dbConfigModel;
+	public static $dbConfigAdmin;
+	public static $module;
+	public static $modelsDir;
+	public static $modelsDirSys;
+	public static $managersDir;
+	public static $forceOverwrite;
+	public static $makeManagers;
+	public static $makeDeveloperModels;
+	public static $sysClassPrefix;
+	public static $developerClassDir;
+	public static $namespace;
+	public static $tablePrefix;
+	public static $conn;
+	public static $objectType;
+	public static $omitTextFieldsAsJson;
+}
+
+O::$tables               = G::$cli->tableList;
+O::$dbConfigModel        = G::$cli->dbConfigModel;
+O::$dbConfigAdmin        = G::$cli->dbConfigAdmin;
+O::$module               = G::$cli->module;
+O::$modelsDir            = G::$cli->modelsDir;
+O::$managersDir          = G::$cli->managersDir;
+O::$forceOverwrite       = G::$cli->forceOverwrite;
+O::$makeManagers         = G::$cli->makeManagers;
+O::$makeDeveloperModels  = G::$cli->makeDeveloperModels;
+O::$sysClassPrefix       = G::$cli->sysClassPrefix;
+O::$namespace            = G::$cli->namespace;
+O::$tablePrefix          = G::$cli->tablePrefix;
+O::$omitTextFieldsAsJson = G::$cli->omitTextFieldsAsJson;
+O::$conn                 = null; // holds the database connection information
+
+
+
+/**
+ *  Validate the database configuration
+ */
+// Model config
+if(!empty(O::$namespace) && !preg_match('/^[a-zA-Z][a-zA-Z0-9_\\\]*$/', O::$namespace)) {
+	M::error('ERROR: --namespace ['.O::$namespace.'] is not a valid PHP namespace.  Valid characters: a-z A-Z 0-9 _ \\', M::ADD_NEW_LINE, 'red');
+	exit;
+}
+
+
+/**
+ * validate that the models directory exists and is writeable
+ *
+ */
+
+O::$modelsDir    = (is_null(O::$modelsDir)) ? dirname(__DIR__).'/module/mod-'.O::$module.'/model' : realpath(O::$modelsDir);
+
+if(!file_exists(O::$modelsDir)) {
+	M::error('ERROR: --models-dir ['.O::$modelsDir.'] does not exist', M::ADD_NEW_LINE, 'red');
+	exit;
+}
+if(!is_dir(O::$modelsDir)) {
+	M::error('ERROR: --models-dir ['.O::$modelsDir.'] is not a directory', M::ADD_NEW_LINE, 'red');
+	exit;
+}
+if(!is_writable(O::$modelsDir)) {
+	M::error('ERROR: --models-dir ['.O::$modelsDir.'] is not writable', M::ADD_NEW_LINE, 'red');
+	exit;
+}
+
+
+
+/**
+ * validate that the manager directory exists and is writeable
+ *
+ */
+O::$managersDir = (is_null(O::$managersDir)) ? dirname(__DIR__).'/module/mod-'.O::$module.'/manager' : realpath(O::$managersDir);
+
+if(!file_exists(O::$managersDir)) {
+	M::error('ERROR: --managers-dir ['.O::$managersDir.'] does not exist', M::ADD_NEW_LINE, 'red');
+	exit;
+}
+if(!is_dir(O::$managersDir)) {
+	M::error('ERROR: --managers-dir ['.O::$managersDir.'] is not a directory', M::ADD_NEW_LINE, 'red');
+	exit;
+}
+if(!is_writable(O::$managersDir)) {
+	M::error('ERROR: --managers-dir ['.O::$managersDir.'] is not writable', M::ADD_NEW_LINE, 'red');
+	exit;
+}
+
+// Build the namespace directory structure if it is specified
+$moduleNamespacePartsRaw = explode('_', O::$module);
+$moduleNamespaceParts    = array();
+foreach($moduleNamespacePartsRaw as $part) {
+	$moduleNamespaceParts[] = ucfirst($part);
+}
+$moduleNamespace = implode($moduleNamespaceParts);
+if(!empty(O::$namespace)) {
+	$dirs = explode('\\', O::$namespace);
+	// $path = O::$modelsDir;
+	foreach($dirs as $dir) {
+		O::$modelsDir = O::$modelsDir.'/'.$dir;
+		O::$managersDir = O::$managersDir.'/'.$dir;
+		if(!file_exists(O::$modelsDir)) {
+			mkdir(O::$modelsDir);
+		}
+		if(!file_exists(O::$managersDir)) {
+			mkdir(O::$managersDir);
+		}
+	}
+
+	O::$namespace = $moduleNamespace.'\\'.O::$namespace;
+}
+else {
+	O::$namespace = $moduleNamespace;
+}
+O::$modelsDirSys = O::$modelsDir.'/sys';
+if(!file_exists(O::$modelsDirSys)) {
+	mkdir(O::$modelsDirSys);
+}
+
+
+/**
+ *  Validate the database configuration
+ */
+// Model config
+if(!preg_match('/^[a-zA-Z0-9_]*$/', O::$dbConfigModel)) {
+	// G::$cli->error('--db-config ['.O::$dbConfigModel.'] is not valid.  Valid characters: a-z A-Z 0-9 _');
+	M::error('ERROR: --db-config ['.O::$dbConfigModel.'] is not valid.  Valid characters: a-z A-Z 0-9 _', M::ADD_NEW_LINE, 'red');
+	exit;
+}
+if(!isset(G::$db->{O::$dbConfigModel})) {
+	// G::$cli->error('--db-config ['.O::$dbConfigModel.'] is not valid. Valid db-config options are: '.implode(', ', array_keys(get_object_vars(G::$db))));
+	M::error('ERROR: --db-config ['.O::$dbConfigModel.'] is not valid. Valid db-config options are: '.implode(', ', array_keys(get_object_vars(G::$db))), M::ADD_NEW_LINE, 'red');
+	exit;
+}
+// Admin config
+if(!preg_match('/^[a-zA-Z0-9_]*$/', O::$dbConfigAdmin)) {
+	// G::$cli->error('--db-config ['.O::$dbConfigAdmin.'] is not valid.  Valid characters: a-z A-Z 0-9 _');
+	M::error('ERROR: --db-config ['.O::$dbConfigAdmin.'] is not valid.  Valid characters: a-z A-Z 0-9 _', M::ADD_NEW_LINE, 'red');
+	exit;
+}
+if(!isset(G::$db->{O::$dbConfigAdmin})) {
+	// G::$cli->error('--db-config ['.O::$dbConfigAdmin.'] is not valid. Valid db-config options are: '.implode(', ', array_keys(get_object_vars(G::$db))));
+	M::error('ERROR: --db-config ['.O::$dbConfigAdmin.'] is not valid. Valid db-config options are: '.implode(', ', array_keys(get_object_vars(G::$db))), M::ADD_NEW_LINE, 'red');
+	exit;
+}
+
+O::$conn = G::$db->{O::$dbConfigAdmin}->master;
+if(!is_object(O::$conn) || !isset(O::$conn->type) || empty(O::$conn->type)) {
+	// G::$cli->error('--db-config ['.O::$dbConfigAdmin.'] has not been configured properly.  Please check the Database.config.php file and try again');
+	M::error('ERROR: --db-config ['.O::$dbConfigAdmin.'] has not been configured properly.  Please check the Database.config.php file and try again', M::ADD_NEW_LINE, 'red');
+	exit;
+}
+
+
+
+/**
+ * validate that the table(s) is(are) valid
+ */
+if(!empty(O::$tables)) {
+	if(!preg_match('/^[a-zA-Z0-9_\,]*$/', O::$tables)) {
+		M::error('ERROR: --table-list ['.O::$tables.'] is not valid.  Valid characters: a-z A-Z 0-9 _ ,', M::ADD_NEW_LINE, 'red');
+		exit;
+	}
+
+	O::$tables = explode(',', O::$tables);
+}
+else {
+	O::$tables = null;
+}
+
+$allTables = O::$conn->listTables();
+
+if(O::$tables !== null && count(O::$tables) !== count(array_intersect(O::$tables, $allTables))) {
+	M::error('ERROR: --table-list ['.implode(', ', O::$tables).'] contains the following invalid tables: '.implode(', ', array_diff(O::$tables, $allTables)), M::ADD_NEW_LINE, 'red');
+	exit;
+}
+elseif(O::$tables === null) {
+	O::$tables = $allTables;
+}
+
+
+
+
+/**
+ * Validate the prefix if it was given
+ */
+if(!empty(O::$sysClassPrefix) && !preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', O::$sysClassPrefix)) {
+	M::error('ERROR: --class-prefix ['.O::$sysClassPrefix.'] is invalid.  This must conform to the PHP class naming conventions', M::ADD_NEW_LINE, 'red');
+	exit;
+}
+
+
+
+
+/**
+ * Prompt the user to verify an overwrite if the flag is set.
+ */
+if(O::$forceOverwrite) {
+	echo "\n\n",'   !!! WARNING !!!',"\n\n",'  Are you sure that you want to overwrite any files in ['.O::$modelsDir.']?',"\n\n";
+	if(!empty(O::$managersDir) && O::$makeManagers === true) {
+		echo '  Are you sure that you want to overwrite any files in ['.O::$managersDir.']?',"\n\n";
+	}
+
+	$answer = null;
+	while($answer != 'Y') {
+		echo '  Confirm [Y/n]:';
+		$answer = G::$cli->prompt();
+		if($answer === 'n') {
+			echo "\n\n",'...abort',"\n\n";
+			exit;
+		}
+	}
+}
+
+
+
+/**
+ * Loop through each of the talbles and build a base model for each
+ */
+$skipNotEmpties = array('time_created');
+foreach(O::$tables as $table) {
+
+	$attributes    = array();
+	$primaryKeys   = array();
+	$notEmpties    = array(); // anything that's not null
+	$hasIDField    = false;
+	$hasPrimaryKey = false;
+	$className     = null;
+	$blazeIDType   = 'BLAZE_OBJECT_ID_AUTO';  // or BLAZE_OBJECT_ID_GUID
+
+
+
+	$results = O::$conn->descTable($table);
+	if(!is_array($results)) {
+		$message = 'Skipping table ['.$table.']: '.$results;
+		M::send('WARNING: '.$message, M::LEVEL_0, M::ADD_NEW_LINE, 'yellow');
+		continue;
+	}
+
+
+	M::send('    MSG: Processing table ['.$table.']', M::LEVEL_0, M::ADD_NEW_LINE);
+	foreach($results as $columnName => $columnInfo) {
+		$attributes[$columnName] = getBlazeType($columnInfo['type'], $table);
+
+		// Validate that the field name meets the blaze naming convention
+		if(!preg_match('/^[a-z_][a-z0-9_]*$/', $columnName)) {
+			M::error('ERROR: The column ['.$columnName.'] in table ['.$table.'] does not meet the BlazePHP naming convention: /^[a-z_]*$/', M::ADD_NEW_LINE, 'red');
+			exit;
+		}
+
+		// Build the list of primary keys
+		if($columnInfo['primary_key'] === 1) {
+			$primaryKeys[] = $columnName;
+			$hasPrimaryKey = true;
+		}
+
+		// Set the flag if the 'id' column is found.
+		if($columnName === 'id') {
+			$hasIDField = true;
+			if($columnInfo['auto_increment'] === 0) {
+				if(!preg_match('/^bigint/', strtolower($columnInfo['type']))) {
+					M::error('ERROR: The [id] column type is not [bigint] for table ['.$table.'] which does not have auto_increment set.  GUID must be a bigint.', M::ADD_NEW_LINE, 'red');
+					exit;
+				}
+				else {
+					$blazeIDType = 'BLAZE_OBJECT_ID_GUID';
+				}
+			}
+		}
+
+		// Build the list of attributes that should not be empty
+		if($columnInfo['is_nullable'] === 0 && false === in_array($columnName, $skipNotEmpties) && empty($columnInfo['default'])) {
+			$notEmpties[] = $columnName;
+		}
+	}
+
+
+	/**
+	 * Validation
+	 */
+	if($hasPrimaryKey === false) {
+		M::error('ERROR: The table ['.$table.'] has no primary key', M::ADD_NEW_LINE, 'red');
+		exit;
+	}
+	// Remove the primary keys from the not empties array, as these are handled separatly
+	$notEmpties     = array_diff($notEmpties, $primaryKeys);
+	$classNameParts = explode('_', $table);
+	foreach($classNameParts as $key => $part) {
+		$classNameParts[$key] = ucfirst($part);
+	}
+
+	buildClassFile($attributes, $primaryKeys, $notEmpties, implode('', $classNameParts), $table, $blazeIDType);
+}
+
+M::sendLineBreak(M::LEVEL_0);
+M::send('Rebuiding the module class map.', M::LEVEL_0, M::ADD_NEW_LINE, 'yellow');
+passthru(__DIR__.'/makemodulemap -v');
+
+
+
+
+
+function buildClassFile($attributes, $primaryKeys, $notEmpties, $className, $table, $blazeIDType)
+{
+	$blazeLicense = array();
+	$blazeLicense[] = '/**';
+	$blazeLicense[] = ' *';
+	$blazeLicense[] = ' * BlazePHP.com - A framework for high performance';
+	$blazeLicense[] = ' * Copyright 2012 - '.date('Y').', BlazePHP.com';
+	$blazeLicense[] = ' *';
+	$blazeLicense[] = ' * Licensed under The MIT License';
+	$blazeLicense[] = ' * Any redistribution of this file\'s contents, both';
+	$blazeLicense[] = ' * as a whole, or in part, must retain the above information';
+	$blazeLicense[] = ' *';
+	$blazeLicense[] = ' * @license       MIT License (http://www.opensource.org/licenses/mit-license.php)';
+	$blazeLicense[] = ' * @copyright     Copyright 2012 - '.date('Y').', BlazePHP.com';
+	$blazeLicense[] = ' * @link          http://blazePHP.com';
+	$blazeLicense[] = ' * @package       Blaze.';
+	$blazeLicense[] = ' */';
+	$blazeLicense = implode("\n", $blazeLicense);
+
+	// Determine if this is a normal object or a multi-primary-key object
+	$isMultiPrimary = false;
+	if(count($primaryKeys) > 1 || !in_array('id', $primaryKeys)) {
+		$isMultiPrimary = true;
+	}
+
+	$blazeObject = array();
+	$blazeObject[] = '<?php';
+	$blazeObject[] = $blazeLicense;
+	$blazeObject[] = '';
+	$blazeObject[] = '';
+	if(!empty(O::$namespace)) {
+		$blazeObject[] = 'namespace '.O::$namespace.';';
+		$blazeObject[] = '';
+	}
+	$blazeObject[] = '/**';
+	$blazeObject[] = ' * '.O::$sysClassPrefix.$className;
+	$blazeObject[] = ' */';
+
+	if($isMultiPrimary === true) {
+		$blazeObject[] = 'class '.O::$sysClassPrefix.$className.' extends \\BlazePHP\Database\\'.O::$conn->type.'ObjectMultiPrimary';
+	}
+	else {
+		$blazeObject[] = 'class '.O::$sysClassPrefix.$className.' extends \\BlazePHP\Database\\'.O::$conn->type.'Object';
+	}
+
+	$blazeObject[] = '{';
+	$blazeObject[] = '	public static $__dbConnectionName = \''.O::$dbConfigModel.'\';';
+
+	if(!is_null(O::$tablePrefix)) {
+		$tableName = O::$tablePrefix.$table;
+	}
+	else {
+		$tableName = $table;
+	}
+
+	$blazeObject[] = '	public static $__dbTableName      = \''.$tableName.'\';';
+	if(count($primaryKeys) === 1) {
+		$blazeObject[] = '	public static $__idType           = '.$blazeIDType.';';
+	}
+
+	$blazeObject[] = '';
+	$blazeObject[] = '	public function __construct($id=null)';
+	$blazeObject[] = '	{';
+	$blazeObject[] = '		$this->__attributeList = Array(';
+
+	$attrs = array();
+	$maxLength = 0;
+	foreach($attributes as $name => $type) {
+		if(strlen($name) >  $maxLength) {
+			$maxLength = strlen($name);
+		}
+	}
+	foreach($attributes as $name => $type) {
+		$attrs[] = str_pad('\''.$name.'\'', ($maxLength+2)).' => '.'\''.$type.'\'';
+	}
+
+	$blazeObject[] = "\t\t\t ".implode("\n\t\t\t".',', $attrs);
+	$blazeObject[] = '		);';
+	$blazeObject[] = '';
+
+	if(count($notEmpties) > 0) {
+		$blazeObject[] = '		$this->__attributeValidation = array(';
+		$not       = array();
+		$maxLength = 0;
+		foreach($notEmpties as $name) {
+			if(strlen($name) >  $maxLength) {
+				$maxLength = strlen($name);
+			}
+		}
+		foreach($notEmpties as $name) {
+			$not[] = str_pad('\''.$name.'\'', ($maxLength+2)).' => '.'array(\'Validate::notEmpty\')';
+		}
+
+		$blazeObject[] = "\t\t\t ".implode("\n\t\t\t".',', $not);
+		$blazeObject[] = '		);';
+	}
+	else {
+		$blazeObject[] = '		$this->__attributeValidation = array();';
+	}
+
+	$blazeObject[] = '';
+
+	if($isMultiPrimary) {
+		$blazeObject[] = '		$this->__primaryKey = array(';
+		$keys = array();
+		foreach($primaryKeys as $key) {
+			$keys[] = '\''.$key.'\'';
+		}
+		$blazeObject[] = "\t\t\t ".implode("\n\t\t\t,", $keys);
+		$blazeObject[] = '		);';
+	}
+
+
+	$blazeObject[] = '';
+	$blazeObject[] = '		parent::__construct($id);';
+	$blazeObject[] = '	}';
+	$blazeObject[] = '}';
+
+
+
+	/**
+	 * Make the manager class if specified
+	 */
+	if(O::$makeManagers) {
+		$blazeManager = array();
+		$blazeManager[] = '<?php';
+		$blazeManager[] = $blazeLicense;
+		$blazeManager[] = '';
+		$blazeManager[] = '';
+		if(!empty(O::$namespace)) {
+			$blazeManager[] = 'namespace '.O::$namespace.';';
+			$blazeManager[] = '';
+		}
+		$blazeManager[] = '/**';
+		$blazeManager[] = ' * '.$className.'Manager';
+		$blazeManager[] = ' */';
+		$blazeManager[] = 'class '.$className.'Manager extends \BlazePHP\Database\\'.O::$conn->type.'ObjectManager';
+		$objectName = $className;
+		$blazeManager[] = '{';
+		$blazeManager[] = '	public function __construct()';
+		$blazeManager[] = '	{';
+		if(!empty(O::$namespace)) {
+			$blazeManager[] = '		$this->objectName = \''.O::$namespace.'\\'.$objectName.'\';';
+		}
+		else {
+			$blazeManager[] = '		$this->objectName = \''.$objectName.'\';';
+		}
+		$blazeManager[] = '		parent::__construct();';
+		$blazeManager[] = '	}';
+		$blazeManager[] = '}';
+
+		writeFile($className.'Manager', $blazeManager, O::$managersDir);
+	}
+
+
+	/**
+	 * Make the user class file if specified
+	 */
+	if(!empty(O::$modelsDir) && O::$makeDeveloperModels === true) {
+		$developerClass = array();
+		$developerClass[] = '<?php';
+		$developerClass[] = $blazeLicense;
+		$developerClass[] = '';
+		$developerClass[] = '';
+		if(!empty(O::$namespace)) {
+			$developerClass[] = 'namespace '.O::$namespace.';';
+			$developerClass[] = '';
+		}
+		$developerClass[] = '/**';
+		$developerClass[] = ' * '.$className;
+		$developerClass[] = ' */';
+		$developerClass[] = 'require_once(__DIR__.\'/sys/'.O::$sysClassPrefix.$className.'.class.php\'); // Assumes the sys/ subdir';
+		$developerClass[] = 'class '.$className.' extends '.O::$sysClassPrefix.$className;
+		$developerClass[] = '{';
+		$developerClass[] = '	public function __construct($id=null)';
+		$developerClass[] = '	{';
+		$developerClass[] = '		parent::__construct($id);';
+		$developerClass[] = '	}';
+		$developerClass[] = '}';
+
+		writeFile($className, $developerClass, O::$modelsDir);
+	}
+
+
+	/**
+	 * Write the blaze object file
+	 */
+	// printre($blazeObject);
+	writeFile(O::$sysClassPrefix.$className, $blazeObject, O::$modelsDirSys);
+	return;
+}
+
+
+
+function writeFile($className, $content, $location)
+{
+	$fullPath = $location.'/'.$className.'.class.php';
+	if(file_exists($fullPath) && !O::$forceOverwrite) {
+		M::send('ALERT: The file already exists [',$fullPath,']', M::LEVEL_0, M::ADD_NEW_LINE, 'yellow');
+		$answer = null;
+		while($answer != 'Y') {
+			M::send('Overwrite this file? [Y/n]:', M::LEVEL_0, M::NO_NEW_LINE);
+			$answer = G::$cli->prompt();
+			if($answer === 'n') {
+				M::send('...skipping', M::LEVEL_0, M::ADD_NEW_LINE, 'yellow');
+				return;
+			}
+		}
+	}
+
+	M::send('  Writing '.$fullPath, M::LEVEL_0, M::NO_NEW_LINE);
+	try {
+		$fp = fopen($fullPath, 'w');
+		fwrite($fp, implode("\n", $content));
+		fclose($fp);
+	}
+	catch (\Exception $e) {
+		M::error(' ERROR: '.$e->getMessage());
+		exit;
+	}
+	M::send(' SUCCESS', M::LEVEL_0, M::ADD_NEW_LINE, 'green');
+}
+
+
+
+
+/**
+ * Returns the blaze type for a MySQL column type
+ */
+function getBlazeType($mysqlType, $table)
+{
+	global $cli;
+
+	$type = preg_replace('/[^a-z\s].*$/', '', strtolower($mysqlType));
+
+	switch($type) {
+
+		case 'bigint':
+			return 'integer_as_string';
+			break;
+
+		case 'tinyint':
+		case 'mediumint':
+		case 'smallint':
+		case 'integer':
+		case 'int':
+		case 'serial': // postgres
+		case 'bigserial': // postgres
+			return 'integer';
+			break;
+
+		case 'float':
+		case 'double':
+		case 'double precision': // postgres
+		case 'real': // postgres
+			return 'float';
+			break;
+
+
+		case 'decimal':
+		case 'money':
+			return 'decimal';
+			break;
+
+		case 'bit':
+		case 'bool':
+		case 'boolean':
+			return 'boolean';
+
+		case 'char':
+		case 'varchar':
+		case 'enum':
+		case 'binary':
+		case 'tinytext':
+		case 'binary':
+		case 'varbinary':
+		case 'tinyblob':
+		case 'mediumblob':
+		case 'date':
+		case 'datetime':
+		case 'time':
+		case 'year':
+		case 'character varying': // postgres
+		case 'character': // postgres
+			return 'string';
+			break;
+
+		case 'text':
+		case 'mediumtext':
+		case 'longtext':
+		case 'blob':
+		case 'longblob':
+			if(O::$omitTextFieldsAsJson === true) {
+				return 'string';
+			}
+			else {
+				return 'object';
+			}
+			break;
+
+		case 'timestamp':
+		case 'timestamp without time zone': // postgres
+		case 'timestamp with time zone': // postgres
+			return 'timestamp';
+			break;
+
+		case 'time without timezone': // postgres
+		case 'time with timezone': // postgres
+		case 'time':
+			return 'time';
+			break;
+
+		case 'datetime':
+			return 'datetime';
+			break;
+
+		case 'date':
+			return 'date';
+			break;
+
+		case 'set':
+			return 'set';
+			break;
+
+		case 'bytea': // postgres
+		case 'binary':
+
+		default;
+			M::error('ERROR: The field type ['.$mysqlType.'] in table ['.$table.'] is not supported by this script', M::ADD_NEW_LINE, 'red');
+			break;
+	}
+}
