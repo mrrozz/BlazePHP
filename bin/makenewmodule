@@ -14,7 +14,7 @@ $o              = new CLI\Option();
 $o->long        = 'module-type';
 $o->short       = 't';
 $o->required    = true;
-$o->description = 'Module type to create.  Options: [shared,cli,api,web]';
+$o->description = 'Module type to create.  Options: [shared,cli,api,www]';
 G::$cli->addOption($o);
 
 // CLI Option - Module name
@@ -62,6 +62,7 @@ O::$layouts = array(
 		,'conf'
 		,'model'
 		,'manager'
+		,'controller'
 	)
 );
 
@@ -72,7 +73,7 @@ if(!preg_match('/^[a-z][a-z_0-9]*$/', O::$moduleName)) {
 	exit;
 }
 if(!in_array(O::$moduleType, array_keys(O::$layouts))) {
-	$message = 'ERROR: The module type ['.O::$moduleType.'] is not valid. Options: [shared,cli,api,web].';
+	$message = 'ERROR: The module type ['.O::$moduleType.'] is not valid. Options: [shared,cli,api,www].';
 	M::error($message, M::ADD_NEW_LINE, 'red');
 	exit;
 }
