@@ -9,11 +9,14 @@
  * as a whole, or in part, must retain the above information
  *
  * @license       MIT License (http://www.opensource.org/licenses/mit-license.php)
- * @copyright     2012 - 2015, BlazePHP.com
+ * @copyright     2012 - 2017, BlazePHP.com
  * @link          http://blazePHP.com
  *
  */
-
+namespace BlazePHP;
+use BlazePHP\Globals as G;
+use BlazePHP\Message as M;
+use BlazePHP\Debug   as D;
 
 /**
  * Network
@@ -33,9 +36,9 @@ class Network
 	 * @param $p GETParameters
 	 * @return The response data plus the connection info
 	 */
-	public static function GET(GETParameters $p)
+	public static function GET(GETParameters $parameters)
 	{
-		return self::requestSingle('GET', $p);
+		return self::requestSingle('GET', $parameters);
 	}
 
 
@@ -43,14 +46,59 @@ class Network
 	/**
 	 * POST - Single post requests
 	 *
-	 * @param $p POSTParameter
+	 * @param $parameters POSTParameter
 	 * @return The response data plus the connection info
 	 */
-	public static function POST(POSTParameters $p)
+	public static function POST(POSTParameters $parameters)
 	{
-		return self::requestSingle('POST', $p);
+		return self::requestSingle('POST', $parameters);
 	}
 
+
+
+	/*
+	 * GET_multi - Execute multiple parallel URL requests
+	 *
+	 * @param $parameterList array An array of GETParamters objects containing the various requests' information
+	 * /
+	public static function GETMulti(array $parameterList)
+	{
+		foreach($parameterList as $p) {
+			$type = gettype($p);
+			$class = ($type === 'object') ? get_class($p) : 'n/a';
+			if($type !== 'object' || $class !== 'BlazePHP\GETParameters') {
+				throw new \Exception( implode(' ', array(
+					 __CLASS__.'::'.__FUNCTION__
+					,' - One of the values found within $parameterList is not a valid GETParameters object instance: type['.$type.'], class['.$class.']'
+				)));
+			}
+		}
+
+		return self::requestMulti($parameterList);
+	}
+	/**/
+
+	/*
+	 * POST_multi - Execute multiple parallel URL requests
+	 *
+	 * @param $parameterList array An array of POSTParamters objects containing the various requests' information
+	 * /
+	public static function POSTMulti(array $parameterList)
+	{
+		foreach($parameterList as $p) {
+			$type = gettype($p);
+			$class = ($type === 'object') ? get_class($p) : 'n/a';
+			if($type !== 'object' || $class !== 'BlazePHP\POSTParameters') {
+				throw new \Exception( implode(' ', array(
+					 __CLASS__.'::'.__FUNCTION__
+					,' - One of the values found within $parameterList is not a valid POSTParameters object instance: type['.$type.'], class['.$class.']'
+				)));
+			}
+		}
+
+		return self::requestMulti($parametersList);
+	}
+	/**/
 
 
 	/**
@@ -61,7 +109,7 @@ class Network
 	 * @return The response data plus the optional connection info
 	 */
 	//public static function POST($URL, $postFields=null, $responseJSON=true, $withInfo=false)
-	public static function requestSingle($type, RequestParameters $p)
+	private static function requestSingle($type, RequestParameters $p)
 	{
 		$ch = curl_init();
 
@@ -80,8 +128,6 @@ class Network
 			,CURLOPT_NETRC                => 1
 			,CURLOPT_FAILONERROR          => true
 			,CURLOPT_CONNECTTIMEOUT       => $p->timeout
-			// ,CURLOPT_SSL_VERIFYHOST       => 0
-			// ,CURLOPT_SSL_VERIFYPEER       => false
 		);
 
 		if($type === 'POST') {
@@ -125,35 +171,181 @@ class Network
 
 
 		if (curl_errno($ch) !== 0) {
-			\Message::send(
+			M::error(
 				 __CLASS__.'::'.__FUNCTION__.' - curl has returned an error: '.curl_error($ch)
-				,1
 			);
 		}
 		$responseInfo = ($p->returnInfo === true) ? curl_getinfo($ch) : null;
 		curl_close($ch);
 
 		if ($p->responseJSON === true) {
-			return Array('info' => $responseInfo, 'data' => json_decode($response));
+			return array('info' => $responseInfo, 'data' => json_decode($response));
 		}
 		else {
-			return Array('info' => $responseInfo, 'data' => $response);
+			return array('info' => $responseInfo, 'data' => $response);
 		}
 	}
 
 
 
 
-	public static function makeParameters($objectName)
+	/*
+ 	 * This doesn't work with PHP7.0 for some reason...  Will revisit soon
+	 * /
+	public static function requestMulti(array $parameterList)
 	{
-		if(class_exists($objectName.'Parameters')) {
-			$objectName .= 'Parameters';
-			return new $objectName();
+		foreach($parameterList as $p) {
+			$type = gettype($p);
+			$class = ($type === 'object') ? get_class($p) : 'n/a';
+			if($type !== 'object' || !in_array($class, array('BlazePHP\POSTParameters', 'BlazePHP\GETParameters'))) {
+				throw new \Exception( implode(' ', array(
+					 __CLASS__.'::'.__FUNCTION__
+					,' - One of the values found within $parameterList is not a valid (POST/GET)Parameters object instance: type['.$type.'], class['.$class.']'
+				)));
+			}
 		}
 
-		throw new Exception(
-			__CLASS__.'::'.__FUNCTION__.' - The parameters object ['.(string)$objectName.'] does not exists'
-		);
+		$parametersByCall = array();
+		$count = 0;
+		foreach($parameterList as $p) {
+
+			${'ch'.(string)$count}                 = curl_init();
+			$parametersByCall['ch'.(string)$count] = $p;
+
+			if($p->getType() === 'GET') {
+				curl_setopt_array(
+					${'ch'.(string)$count}, array(
+						CURLOPT_URL => $p->URL
+					   ,CURLOPT_HEADER => 0
+					   ,CURLOPT_RETURNTRANSFER => 1
+					   ,CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4
+					   ,CURLOPT_DNS_USE_GLOBAL_CACHE => 0
+					   ,CURLOPT_FILETIME => 0
+					   ,CURLOPT_FOLLOWLOCATION => 0
+					   ,CURLOPT_FORBID_REUSE => 1
+					   ,CURLOPT_FRESH_CONNECT => 0
+					   ,CURLOPT_HEADER => 0
+					   ,CURLINFO_HEADER_OUT => 0
+					   ,CURLOPT_HTTPGET => 1
+					   ,CURLOPT_NETRC => 1
+					   ,CURLOPT_CONNECTTIMEOUT => $p->timeout
+					)
+				);
+			}
+			else if ($p->getType() === 'POST') {
+				curl_setopt_array(
+					${'ch'.(string)$count}, array(
+						CURLOPT_URL => $p->URL
+					   ,CURLOPT_HEADER => 0
+					   ,CURLOPT_RETURNTRANSFER => 1
+					   ,CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4
+					   ,CURLOPT_DNS_USE_GLOBAL_CACHE => 0
+					   ,CURLOPT_FILETIME => 0
+					   ,CURLOPT_FOLLOWLOCATION => 0
+					   ,CURLOPT_FORBID_REUSE => 1
+					   ,CURLOPT_FRESH_CONNECT => 0
+					   ,CURLOPT_HEADER => 0
+					   ,CURLINFO_HEADER_OUT => 0
+					   ,CURLOPT_POST => 1
+					   ,CURLOPT_NETRC => 1
+					   ,CURLOPT_CONNECTTIMEOUT => $p->timeout
+					   ,CURLOPT_POSTFIELDS => http_build_query($p->postFields)
+					)
+				);
+			}
+
+			$count++;
+
+		}
+
+		// Create the multi cURL handle
+		$mh = curl_multi_init();
+
+		// Add the  handles
+		for ($i=0; $i<$count; $i++) {
+			// printre(array($mh, ${'ch'.(string)$i}));
+			curl_multi_add_handle($mh, ${'ch'.(string)$i});
+			// printr(${'ch'.(string)$i});
+		}
+
+		// Execute the handles and wait for the (loop while it's still running)
+		$active = null;
+		do {
+			$mrc = curl_multi_exec($mh, $active);
+			// printr(array($mrc, CURLM_CALL_MULTI_PERFORM, CURLM_OK, $active, $mh));
+		} while ($mrc == CURLM_CALL_MULTI_PERFORM);
+
+		while ($active && $mrc == CURLM_OK) {
+			// printr(curl_multi_select($mh));
+			if (curl_multi_select($mh) != -1) {
+				do {
+					$mrc = curl_multi_exec($mh, $active);
+					printr(array(__LINE__ => $mrc));
+					if ($mrc !== CURLM_OK) {
+						M::error(
+							__CLASS__.'::'.__FUNCTION__.' - curl_exec_multi has returned an error: '.curl_error(${'ch'.(string)$i})
+							.' [MRC CODE: '.(string)$mrc.']'
+						);
+					}
+				} while ($mrc == CURLM_CALL_MULTI_PERFORM);
+			}
+		}
+
+		// Wait for the  the content for each
+		$r = array();
+		for ($i=0; $i<$count; $i++) {
+			if (curl_errno(${'ch'.(string)$i}) !== 0) {
+				M::error(
+					__CLASS__.'::'.__FUNCTION__.' - curl has returned an error: '.curl_error(${'ch'.(string)$i})
+				);
+				continue;
+			}
+
+			$responseInfo = curl_getinfo(${'ch'.(string)$i});
+			if ((integer)$responseInfo['http_code'] >= 400 || (integer)$responseInfo['http_code'] <= 0) {
+				$response = 'HTTP Error Code: '.(string)$responseInfo['http_code'];
+			}
+			else {
+				$response = curl_multi_getcontent(${'ch'.(string)$i});
+			}
+
+			curl_close(${'ch'.(string)$i});
+
+			if ($parametersByCall['ch'.(string)$i]->responseJSON === true) {
+				$response = json_decode($response);
+			}
+
+			$r[$parametersByCall['ch'.(string)$i]->URL] = array(
+				 'info' => ($parametersByCall['ch'.(string)$i]->returnInfo === true) ? $responseInfo : null
+				,'data' => $response
+			);
+		}
+
+		printr($r);
+
+		return $r;
+	}
+	/**/
+
+
+
+
+	public static function makeParameters($type)
+	{
+		$type = strtoupper($type);
+
+		if(!in_array($type, array('POST', 'GET'))) {
+			throw new \Exception(
+				__CLASS__.'::'.__FUNCTION__.' - The parameters object ['.(string)$type.'] does not exists'
+			);
+		}
+
+		if($type === 'POST') {
+			return new POSTParameters();
+		}
+		if($type === 'GET') {
+			return new GETParameters();
+		}
 	}
 }
 
@@ -170,15 +362,27 @@ abstract class RequestParameters extends Struct
 
 	public $debug         = false;
 
-	public $timeout       = 10; // seconds
+	public $timeout       = 1; // seconds
 	public $headers       = array();
 
 	public $logfile       = null;
+
+	protected $type         = null;
+
+	public function getType()
+	{
+		return $this->type;
+	}
 }
 
-class GETParameters extends RequestParameters {}
+class GETParameters extends RequestParameters
+{
+	protected $type = 'GET';
+}
 
 class POSTParameters extends RequestParameters
 {
-	public $postFields = null;
+	public  $postFields = null;
+
+	protected $type       = 'POST';
 }
