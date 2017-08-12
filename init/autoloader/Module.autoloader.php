@@ -52,6 +52,9 @@ spl_autoload_register(
 		elseif(isset(G::$moduleMap[$className])) {
 			$classLocation = ABS_ROOT.'/module/'.G::$moduleMap[$className];
 		}
+		elseif(isset(G::$controllerMap[$className])) {
+			$classLocation = ABS_ROOT.'/module/'.G::$controllerMap[$className];
+		}
 		else {
 			ob_start();
 			debug_print_backtrace();

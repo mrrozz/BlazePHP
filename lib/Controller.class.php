@@ -17,29 +17,21 @@ namespace BlazePHP;
 
 
 /**
- * Globals
+ * Controller
  *
  * @author    Matt Roszyk <me@mattroszyk.com>
  * @package   Blaze.Core
  *
  */
-class Globals extends Struct
+abstract class Controller extends Struct
 {
-	/**
-	 * Globally accessible variables
-	 */
-	public static $debug = false;
-	public static $env;
-	public static $db;
-	public static $cli;
-	public static $log;
-	public static $verbose;
-	public static $moduleMap;
-	public static $controllerMap;
-	public static $request;
-	public static $route;
-	public static $routeAlias;
-	public static $autoload = array(
-		'BlazePHP:lib'  // Map all BlazePHP namespace classes to the ABS_ROOT/lib directory
-	);
+	public function before()
+	{
+
+	}
+
+	public function after()
+	{
+
+	}
 }
