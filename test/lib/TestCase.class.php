@@ -27,7 +27,7 @@ class TestCase
 	public function assertInstanceOf($class, $object)
 	{
 		if($class !== get_class($object)) {
-			throw new Exception( implode(' ', array(
+			throw new \Exception( implode(' ', array(
 				 __CLASS__.'::'.__FUNCTION__
 				,' - The instance expected ['.$class.'] does not match the object ['.get_class($object).']'
 			)));
