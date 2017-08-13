@@ -32,8 +32,6 @@ require_once(ABS_ROOT.'/lib/Globals.class.php');
  */
 require_once(__DIR__.'/autoloader/Module.autoloader.php');
 
-
-
 /*
  * Create the Request object
  */
@@ -81,4 +79,6 @@ require($controllerConfig['location']);
 $className = '\\'.MODULE_NAMESPACE.'\\'.$controllerConfig['className'];
 $controller = new $className();
 $action = G::$route->getAction();
+$controller->before();
 $controller->{$action}();
+$controller->after();

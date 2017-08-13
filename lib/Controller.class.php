@@ -27,11 +27,11 @@ abstract class Controller extends Struct
 {
 	public function before()
 	{
-
+		return;
 	}
 
 	public function after()
 	{
-
+		return;
 	}
 }
