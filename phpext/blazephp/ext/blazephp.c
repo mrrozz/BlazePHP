@@ -26,6 +26,7 @@
 zend_class_entry *blazephp_struct_ce;
 zend_class_entry *blazephp_helloworld_ce;
 zend_class_entry *blazephp_lock_ce;
+zend_class_entry *blazephp_log_ce;
 zend_class_entry *blazephp_request_ce;
 zend_class_entry *blazephp_session_ce;
 zend_class_entry *blazephp_sessionconfig_ce;
@@ -44,6 +45,7 @@ static PHP_MINIT_FUNCTION(blazephp)
 	ZEPHIR_INIT(BlazePHP_Struct);
 	ZEPHIR_INIT(BlazePHP_HelloWorld);
 	ZEPHIR_INIT(BlazePHP_Lock);
+	ZEPHIR_INIT(BlazePHP_Log);
 	ZEPHIR_INIT(BlazePHP_Request);
 	ZEPHIR_INIT(BlazePHP_Session);
 	ZEPHIR_INIT(BlazePHP_SessionConfig);

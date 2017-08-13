@@ -44,6 +44,8 @@ blazephp/helloworld.lo: /media/sf_devhttpd/BlazePHP/phpext/blazephp/ext/blazephp
 	$(LIBTOOL) --mode=compile $(CC)  -I. -I/media/sf_devhttpd/BlazePHP/phpext/blazephp/ext $(COMMON_FLAGS) $(CFLAGS_CLEAN) $(EXTRA_CFLAGS)  -c /media/sf_devhttpd/BlazePHP/phpext/blazephp/ext/blazephp/helloworld.zep.c -o blazephp/helloworld.lo 
 blazephp/lock.lo: /media/sf_devhttpd/BlazePHP/phpext/blazephp/ext/blazephp/lock.zep.c
 	$(LIBTOOL) --mode=compile $(CC)  -I. -I/media/sf_devhttpd/BlazePHP/phpext/blazephp/ext $(COMMON_FLAGS) $(CFLAGS_CLEAN) $(EXTRA_CFLAGS)  -c /media/sf_devhttpd/BlazePHP/phpext/blazephp/ext/blazephp/lock.zep.c -o blazephp/lock.lo 
+blazephp/log.lo: /media/sf_devhttpd/BlazePHP/phpext/blazephp/ext/blazephp/log.zep.c
+	$(LIBTOOL) --mode=compile $(CC)  -I. -I/media/sf_devhttpd/BlazePHP/phpext/blazephp/ext $(COMMON_FLAGS) $(CFLAGS_CLEAN) $(EXTRA_CFLAGS)  -c /media/sf_devhttpd/BlazePHP/phpext/blazephp/ext/blazephp/log.zep.c -o blazephp/log.lo 
 blazephp/request.lo: /media/sf_devhttpd/BlazePHP/phpext/blazephp/ext/blazephp/request.zep.c
 	$(LIBTOOL) --mode=compile $(CC)  -I. -I/media/sf_devhttpd/BlazePHP/phpext/blazephp/ext $(COMMON_FLAGS) $(CFLAGS_CLEAN) $(EXTRA_CFLAGS)  -c /media/sf_devhttpd/BlazePHP/phpext/blazephp/ext/blazephp/request.zep.c -o blazephp/request.lo 
 blazephp/session.lo: /media/sf_devhttpd/BlazePHP/phpext/blazephp/ext/blazephp/session.zep.c

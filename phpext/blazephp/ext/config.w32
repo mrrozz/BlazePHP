@@ -10,7 +10,7 @@ if (PHP_BLAZEPHP != "no") {
     AC_DEFINE("ZEPHIR_USE_PHP_JSON", 1, "Whether PHP json extension is present at compile time");
   }
   
-  ADD_SOURCES(configure_module_dirname + "/blazephp", "struct.zep.c helloworld.zep.c lock.zep.c request.zep.c session.zep.c sessionconfig.zep.c uniqueid.zep.c", "blazephp");
+  ADD_SOURCES(configure_module_dirname + "/blazephp", "struct.zep.c helloworld.zep.c lock.zep.c log.zep.c request.zep.c session.zep.c sessionconfig.zep.c uniqueid.zep.c", "blazephp");
   ADD_FLAG("CFLAGS_BLAZEPHP", "/D ZEPHIR_RELEASE /Oi /Ot /Oy /Ob2 /Gs /GF /Gy /GL");
   ADD_FLAG("CFLAGS", "/D ZEPHIR_RELEASE /Oi /Ot /Oy /Ob2 /Gs /GF /Gy /GL");
   ADD_FLAG("LDFLAGS", "/LTCG");

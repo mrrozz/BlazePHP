@@ -75,10 +75,10 @@ PHP_METHOD(BlazePHP_UniqueId, make) {
 	object_init_ex(&lock, blazephp_lock_ce);
 	ZEPHIR_INIT_VAR(&_2);
 	ZEPHIR_CONCAT_SV(&_2, "blaze_session_lock-", &thisSecond);
-	ZEPHIR_CALL_METHOD(NULL, &lock, "__construct", NULL, 8, &_2);
+	ZEPHIR_CALL_METHOD(NULL, &lock, "__construct", NULL, 9, &_2);
 	zephir_check_call_status();
 	ZVAL_LONG(&_3, 1);
-	ZEPHIR_CALL_FUNCTION(&_4, "uniqid", NULL, 9, &_3, &__$true);
+	ZEPHIR_CALL_FUNCTION(&_4, "uniqid", NULL, 10, &_3, &__$true);
 	zephir_check_call_status();
 	ZEPHIR_INIT_VAR(&id);
 	ZEPHIR_CONCAT_VVV(&id, &prefix, &_4, &suffix);

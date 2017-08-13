@@ -12,6 +12,7 @@ if test "$PHP_BLAZEPHP" = "yes"; then
 	blazephp_sources="blazephp.c kernel/main.c kernel/memory.c kernel/exception.c kernel/debug.c kernel/backtrace.c kernel/object.c kernel/array.c kernel/string.c kernel/fcall.c kernel/require.c kernel/file.c kernel/operators.c kernel/math.c kernel/concat.c kernel/variables.c kernel/filter.c kernel/iterator.c kernel/time.c kernel/exit.c blazephp/struct.zep.c
 	blazephp/helloworld.zep.c
 	blazephp/lock.zep.c
+	blazephp/log.zep.c
 	blazephp/request.zep.c
 	blazephp/session.zep.c
 	blazephp/sessionconfig.zep.c

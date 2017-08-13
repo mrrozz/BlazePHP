@@ -11,7 +11,7 @@ SHLIB_DL_SUFFIX_NAME = so
 ZEND_EXT_TYPE = zend_extension
 RE2C = re2c
 AWK = nawk
-shared_objects_blazephp = blazephp.lo kernel/main.lo kernel/memory.lo kernel/exception.lo kernel/debug.lo kernel/backtrace.lo kernel/object.lo kernel/array.lo kernel/string.lo kernel/fcall.lo kernel/require.lo kernel/file.lo kernel/operators.lo kernel/math.lo kernel/concat.lo kernel/variables.lo kernel/filter.lo kernel/iterator.lo kernel/time.lo kernel/exit.lo blazephp/struct.lo blazephp/helloworld.lo blazephp/lock.lo blazephp/request.lo blazephp/session.lo blazephp/sessionconfig.lo blazephp/uniqueid.lo
+shared_objects_blazephp = blazephp.lo kernel/main.lo kernel/memory.lo kernel/exception.lo kernel/debug.lo kernel/backtrace.lo kernel/object.lo kernel/array.lo kernel/string.lo kernel/fcall.lo kernel/require.lo kernel/file.lo kernel/operators.lo kernel/math.lo kernel/concat.lo kernel/variables.lo kernel/filter.lo kernel/iterator.lo kernel/time.lo kernel/exit.lo blazephp/struct.lo blazephp/helloworld.lo blazephp/lock.lo blazephp/log.lo blazephp/request.lo blazephp/session.lo blazephp/sessionconfig.lo blazephp/uniqueid.lo
 PHP_PECL_EXTENSION = blazephp
 BLAZEPHP_SHARED_LIBADD =
 PHP_MODULES = $(phplibdir)/blazephp.la
@@ -236,6 +236,8 @@ blazephp/helloworld.lo: /media/sf_devhttpd/BlazePHP/phpext/blazephp/ext/blazephp
 	$(LIBTOOL) --mode=compile $(CC)  -I. -I/media/sf_devhttpd/BlazePHP/phpext/blazephp/ext $(COMMON_FLAGS) $(CFLAGS_CLEAN) $(EXTRA_CFLAGS)  -c /media/sf_devhttpd/BlazePHP/phpext/blazephp/ext/blazephp/helloworld.zep.c -o blazephp/helloworld.lo 
 blazephp/lock.lo: /media/sf_devhttpd/BlazePHP/phpext/blazephp/ext/blazephp/lock.zep.c
 	$(LIBTOOL) --mode=compile $(CC)  -I. -I/media/sf_devhttpd/BlazePHP/phpext/blazephp/ext $(COMMON_FLAGS) $(CFLAGS_CLEAN) $(EXTRA_CFLAGS)  -c /media/sf_devhttpd/BlazePHP/phpext/blazephp/ext/blazephp/lock.zep.c -o blazephp/lock.lo 
+blazephp/log.lo: /media/sf_devhttpd/BlazePHP/phpext/blazephp/ext/blazephp/log.zep.c
+	$(LIBTOOL) --mode=compile $(CC)  -I. -I/media/sf_devhttpd/BlazePHP/phpext/blazephp/ext $(COMMON_FLAGS) $(CFLAGS_CLEAN) $(EXTRA_CFLAGS)  -c /media/sf_devhttpd/BlazePHP/phpext/blazephp/ext/blazephp/log.zep.c -o blazephp/log.lo 
 blazephp/request.lo: /media/sf_devhttpd/BlazePHP/phpext/blazephp/ext/blazephp/request.zep.c
 	$(LIBTOOL) --mode=compile $(CC)  -I. -I/media/sf_devhttpd/BlazePHP/phpext/blazephp/ext $(COMMON_FLAGS) $(CFLAGS_CLEAN) $(EXTRA_CFLAGS)  -c /media/sf_devhttpd/BlazePHP/phpext/blazephp/ext/blazephp/request.zep.c -o blazephp/request.lo 
 blazephp/session.lo: /media/sf_devhttpd/BlazePHP/phpext/blazephp/ext/blazephp/session.zep.c
