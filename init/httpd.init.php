@@ -80,5 +80,10 @@ $className = '\\'.MODULE_NAMESPACE.'\\'.$controllerConfig['className'];
 $controller = new $className();
 $action = G::$route->getAction();
 $controller->before();
-$controller->{$action}();
+if(method_exists($controller, $action)) {
+	$controller->{$action}();
+}
+else {
+	$controller->notfound();
+}
 $controller->after();

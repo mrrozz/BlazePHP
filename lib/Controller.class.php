@@ -34,4 +34,23 @@ abstract class Controller extends Struct
 	{
 		return;
 	}
+
+	public function notfound()
+	{
+		header("HTTP/1.0 404 Not Found");
+		die('Request is invalid');
+	}
+
+	protected function redirect($destination)
+	{
+		header('HTTP/1.1 302 Found');
+		header('Location: ' . $destination);
+	}
+
+	public function renderJSON($output)
+	{
+		header('Content-Type: application/json');
+		echo json_encode($output);
+		return;
+	}
 }

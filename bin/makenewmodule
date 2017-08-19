@@ -32,11 +32,20 @@ class O extends Struct
 {
 	public static $moduleType;
 	public static $moduleName;
+	public static $namespace;
 
 	public static $layouts;
+	public static $license;
 }
 O::$moduleType = G::$cli->moduleType;
 O::$moduleName = G::$cli->moduleName;
+$parts = explode('_', O::$moduleName);
+$partsFormatted = array();
+foreach($parts as $part) {
+	$partsFormatted[] = ucfirst(strtolower($part));
+}
+O::$namespace = implode('_', $partsFormatted);
+unset($parts, $partsFormatted);
 
 O::$layouts = array(
 	 'shared' => array(
@@ -53,6 +62,7 @@ O::$layouts = array(
 	,'api' => array(
 		 'public'
 		,'conf'
+		,'controller'
 		,'model'
 		,'manager'
 	)
@@ -63,9 +73,28 @@ O::$layouts = array(
 		,'model'
 		,'manager'
 		,'controller'
+		,'view'
+		,'view-element'
 	)
 );
 
+$license = array();
+$license[] = '/**';
+$license[] = ' *';
+$license[] = ' * BlazePHP.com - A framework for high performance';
+$license[] = ' * Copyright 2012 - '.date('Y').', BlazePHP.com';
+$license[] = ' *';
+$license[] = ' * Licensed under The MIT License';
+$license[] = ' * Any redistribution of this file\'s contents, both';
+$license[] = ' * as a whole, or in part, must retain the above information';
+$license[] = ' *';
+$license[] = ' * @license       MIT License (http://www.opensource.org/licenses/mit-license.php)';
+$license[] = ' * @copyright     Copyright 2012 - 2013, BlazePHP.com';
+$license[] = ' * @link          http://blazePHP.com';
+$license[] = ' *';
+$license[] = ' */';
+O::$license = implode("\n", $license);
+unset($license);
 
 if(!preg_match('/^[a-z][a-z_0-9]*$/', O::$moduleName)) {
 	$message = 'ERROR: The module name ['.O::$moduleName.'] specified is invalid. The name must match the regex pattern /^[a-z][a-z_0-9]*$/ in order to be accepted.';
@@ -101,6 +130,7 @@ foreach(O::$layouts[O::$moduleType] as $dir) {
 
 		$config = array();
 		$config[] = '<?php';
+		$config[] = O::$license;
 		$config[] = 'namespace BlazePHP;';
 		$config[] = 'use BlazePHP\Globals as G;';
 		$config[] = 'use BlazePHP\Database\ConnectionBoss;';
@@ -136,14 +166,88 @@ foreach(O::$layouts[O::$moduleType] as $dir) {
 		$config[] = '/* Initiate the database configuration */';
 		$config[] = 'G::$db = new DatabaseConfig();';
 
+		if(in_array(O::$moduleType, array('api', 'www'))) {
+			$config[] = '';
+			$config[] = '';
+			$config[] = 'class Route extends \BlazePHP\Route';
+			$config[] = '{';
+			$config[] = '	public function __construct()';
+			$config[] = '	{';
+			$config[] = '		// %i - the argument is treated as an unsigned integer';
+			$config[] = '		// %s - the argument is treated as and presented as a string matching the following pattern \'[a-zA-Z0-9_\-\.]\'.';
+			$config[] = '';
+			$config[] = '		$this->alias(\'/mycontroller/index\',                    \'/\');';
+			$config[] = '		$this->alias(\'/mycontroller/myaction/id:$i1\',          \'/myAlias/%i\');';
+			$config[] = '';
+			$config[] = '		parent::__construct();';
+			$config[] = '	}';
+			$config[] = '}';
+			$config[] = '';
+			$config[] = '/* Initiate the database configuration */';
+			$config[] = 'G::$route = new Route();';
+		}
+
 		$confFh = fopen($moduleLoc.'/conf/default.conf.php', 'a');
 		fwrite($confFh, implode("\n", $config));
 		fclose($confFh);
 
 		M::send('SUCCESS', M::LEVEL_0, M::ADD_NEW_LINE, 'green');
 	}
+	else if($dir === 'public') {
+		M::send('        Writing public/index.php: ', M::LEVEL_0, M::NO_NEW_LINE);
+
+		$index = array();
+		$index[] = '<?php';
+		$index[] = O::$license;
+		$index[] = 'namespace '.O::$namespace.';';
+		$index[] = 'use BlazePHP\Globals as G;';
+		$index[] = '';
+		$index[] = 'define(\'MODULE_ROOT\',      dirname(__DIR__));';
+		$index[] = 'define(\'MODULE_NAMESPACE\', \''.O::$namespace.'\');';
+		$index[] = '';
+		$index[] = 'require(dirname(dirname(dirname(__DIR__))).\'/init/httpd.init.php\');';
+		$index[] = '';
+
+		$indexFh = fopen($moduleLoc.'/public/index.php', 'a');
+		fwrite($indexFh, implode("\n", $index));
+		fclose($indexFh);
+
+		M::send('SUCCESS', M::LEVEL_0, M::ADD_NEW_LINE, 'green');
+	}
+	else if($dir === 'controller') {
+		M::send('        Writing controller/mycontroller.ctlr.php: ', M::LEVEL_0, M::NO_NEW_LINE);
+
+		$controller = array();
+		$controller[] = '<?php';
+		$controller[] = O::$license;
+		$controller[] = 'namespace BlazePHP_Www;';
+		$controller[] = '';
+		$controller[] = 'class MyControllerCTLR extends \BlazePHP\Controller';
+		$controller[] = '{';
+		$controller[] = '	public function index()';
+		$controller[] = '	{';
+		$controller[] = '		self::myaction();';
+		$controller[] = '	}';
+		$controller[] = '';
+		$controller[] = '	public function myaction()';
+		$controller[] = '	{';
+		$controller[] = '		$this->renderJSON(array(\'success\' => \'My Action works!\'));';
+		$controller[] = '	}';
+		$controller[] = '}';
+
+		$controllerFh = fopen($moduleLoc.'/controller/MyController.ctlr.php', 'a');
+		fwrite($controllerFh, implode("\n", $controller));
+		fclose($controllerFh);
+
+		M::send('SUCCESS', M::LEVEL_0, M::ADD_NEW_LINE, 'green');
+
+	}
 	else {
 		touch($moduleLoc.'/'.$dir.'/empty');
 	}
 }
 M::send('SUCCESS', M::LEVEL_0, M::ADD_NEW_LINE, 'green');
+
+$makeModuleMap = __DIR__.'/makemodulecontrollersmap';
+$moduleName    = O::$moduleName;
+echo `$makeModuleMap --module-name=$moduleName`;
