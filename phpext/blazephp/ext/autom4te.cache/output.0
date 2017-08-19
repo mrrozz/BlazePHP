@@ -4065,8 +4065,6 @@ $as_echo "@%:@define HAVE_BLAZEPHP 1" >>confdefs.h
 	blazephp/lock.zep.c
 	blazephp/log.zep.c
 	blazephp/request.zep.c
-	blazephp/session.zep.c
-	blazephp/sessionconfig.zep.c
 	blazephp/uniqueid.zep.c "
 	
   ext_builddir=.

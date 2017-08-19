@@ -9,8 +9,6 @@
 #include "blazephp/lock.zep.h"
 #include "blazephp/log.zep.h"
 #include "blazephp/request.zep.h"
-#include "blazephp/session.zep.h"
-#include "blazephp/sessionconfig.zep.h"
 #include "blazephp/uniqueid.zep.h"
 
 #endif

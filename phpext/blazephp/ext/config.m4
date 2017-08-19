@@ -14,8 +14,6 @@ if test "$PHP_BLAZEPHP" = "yes"; then
 	blazephp/lock.zep.c
 	blazephp/log.zep.c
 	blazephp/request.zep.c
-	blazephp/session.zep.c
-	blazephp/sessionconfig.zep.c
 	blazephp/uniqueid.zep.c "
 	PHP_NEW_EXTENSION(blazephp, $blazephp_sources, $ext_shared,, )
 	PHP_SUBST(BLAZEPHP_SHARED_LIBADD)
