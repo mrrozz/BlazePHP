@@ -14,7 +14,7 @@ $o              = new CLI\Option();
 $o->long        = 'module-type';
 $o->short       = 't';
 $o->required    = true;
-$o->description = 'Module type to create.  Options: [shared,cli,api,www]';
+$o->description = 'Module type to create.  Options: [shared,cli,api,www,composer]';
 G::$cli->addOption($o);
 
 // CLI Option - Module name
@@ -75,6 +75,9 @@ O::$layouts = array(
 		,'controller'
 		,'view'
 		,'view-element'
+	)
+	,'composer' => array(
+		 'vendor'
 	)
 );
 
@@ -248,6 +251,36 @@ foreach(O::$layouts[O::$moduleType] as $dir) {
 }
 M::send('SUCCESS', M::LEVEL_0, M::ADD_NEW_LINE, 'green');
 
-$makeModuleMap = __DIR__.'/makemodulecontrollersmap';
-$moduleName    = O::$moduleName;
-echo `$makeModuleMap --module-name=$moduleName`;
+if(O::$moduleType === 'composer') {
+	M::send('Creating the composer configuration and installing the binary: ', M::LEVEL_0, M::ADD_NEW_LINE);
+
+	$installerLoc = $moduleLoc.'/composer-setup.php';
+
+	copy('https://getcomposer.org/installer', $installerLoc);
+	if (hash_file('SHA384', $installerLoc) === '669656bab3166a7aff8a7506b8cb2d1c292f042046c5a994c43155c0be6190fa0355160742ab2e1c88d40d5be660b410') {
+		M::send('    Installer verified', M::LEVEL_1, M::ADD_NEW_LINE, 'green');
+	}
+	else {
+		$message = 'ERROR: Installer corrupt';
+		M::error($message, M::ADD_NEW_LINE, 'red');
+		unlink($installerLoc);
+	}
+
+	// \Message::send('INSTALLING: ', \Message::LEVEL_1, \Message::ADD_NEW_LINE);
+	M::send('INSTALLING: ', M::LEVEL_1, M::ADD_NEW_LINE, 'green');
+	$argv = array();
+	$argv[] =
+	// printre($argv);
+	$argc = 1;
+	// include($installerLoc); //composer-setup.php
+	$installerOptions = '--install-dir='.dirname($installerLoc);
+	echo `/usr/bin/env php $installerLoc $installerOptions`;
+
+	M::sendLineBreak(M::LEVEL_1, 1 /* quantity */);
+	M::send('SUCCESS', M::LEVEL_0, M::ADD_NEW_LINE, 'green');
+}
+else {
+	$makeModuleMap = __DIR__.'/makemodulecontrollersmap';
+	$moduleName    = O::$moduleName;
+	echo `$makeModuleMap --module-name=$moduleName`;
+}

@@ -44,8 +44,6 @@ spl_autoload_register(
 			$path = preg_replace($search, $replace, implode('/', $parts));
 		}
 
-
-
 		if(file_exists(ABS_ROOT.'/'.$path.'.class.php')) {
 			$classLocation = ABS_ROOT.'/'.$path.'.class.php';
 		}
