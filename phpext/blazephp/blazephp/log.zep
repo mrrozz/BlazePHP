@@ -68,7 +68,11 @@ class Log extends Struct
 
 	public function write(int level, string message, bool addNewLine=true)
 	{
-		if(level > this->level) {
+		// Log files do not get written for message levels less than 1
+		// This is to maintain the ability for the Message() class to send
+		// messages to the screen but avoid logging when there is no log file
+		// created for certain scripts.
+		if(level <= 0 || level > this->level) {
 			return;
 		}
 
