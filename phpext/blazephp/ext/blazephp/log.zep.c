@@ -166,22 +166,22 @@ PHP_METHOD(BlazePHP_Log, __destruct) {
 
 PHP_METHOD(BlazePHP_Log, write) {
 
-	zend_bool addNewLine;
-	zval message, _5$$5;
-	zval *level_param = NULL, *message_param = NULL, *addNewLine_param = NULL, __$true, __$false, _0, _1, _6, _2$$4, _3$$4, _4$$4;
+	zend_bool addNewLine, _0;
+	zval message, _6$$5;
+	zval *level_param = NULL, *message_param = NULL, *addNewLine_param = NULL, __$true, __$false, _1, _2, _7, _3$$4, _4$$4, _5$$4;
 	zend_long level, ZEPHIR_LAST_CALL_STATUS;
 	zval *this_ptr = getThis();
 
 	ZVAL_BOOL(&__$true, 1);
 	ZVAL_BOOL(&__$false, 0);
-	ZVAL_UNDEF(&_0);
 	ZVAL_UNDEF(&_1);
-	ZVAL_UNDEF(&_6);
-	ZVAL_UNDEF(&_2$$4);
+	ZVAL_UNDEF(&_2);
+	ZVAL_UNDEF(&_7);
 	ZVAL_UNDEF(&_3$$4);
 	ZVAL_UNDEF(&_4$$4);
+	ZVAL_UNDEF(&_5$$4);
 	ZVAL_UNDEF(&message);
-	ZVAL_UNDEF(&_5$$5);
+	ZVAL_UNDEF(&_6$$5);
 
 	ZEPHIR_MM_GROW();
 	zephir_fetch_params(1, 2, 1, &level_param, &message_param, &addNewLine_param);
@@ -195,19 +195,23 @@ PHP_METHOD(BlazePHP_Log, write) {
 	}
 
 
-	zephir_read_property(&_0, this_ptr, SL("level"), PH_NOISY_CC | PH_READONLY);
-	if (ZEPHIR_LT_LONG(&_0, level)) {
+	_0 = level <= 0;
+	if (!(_0)) {
+		zephir_read_property(&_1, this_ptr, SL("level"), PH_NOISY_CC | PH_READONLY);
+		_0 = ZEPHIR_LT_LONG(&_1, level);
+	}
+	if (_0) {
 		RETURN_MM_NULL();
 	}
-	zephir_read_property(&_1, this_ptr, SL("addTimeStamp"), PH_NOISY_CC | PH_READONLY);
-	if (ZEPHIR_IS_TRUE_IDENTICAL(&_1)) {
-		ZEPHIR_INIT_VAR(&_2$$4);
-		ZVAL_STRING(&_2$$4, "Y-m-d H:i:s");
-		ZEPHIR_CALL_FUNCTION(&_3$$4, "date", NULL, 2, &_2$$4);
+	zephir_read_property(&_2, this_ptr, SL("addTimeStamp"), PH_NOISY_CC | PH_READONLY);
+	if (ZEPHIR_IS_TRUE_IDENTICAL(&_2)) {
+		ZEPHIR_INIT_VAR(&_3$$4);
+		ZVAL_STRING(&_3$$4, "Y-m-d H:i:s");
+		ZEPHIR_CALL_FUNCTION(&_4$$4, "date", NULL, 2, &_3$$4);
 		zephir_check_call_status();
-		ZEPHIR_INIT_VAR(&_4$$4);
-		ZEPHIR_CONCAT_SVSV(&_4$$4, "[", &_3$$4, "] ", &message);
-		zephir_get_strval(&message, &_4$$4);
+		ZEPHIR_INIT_VAR(&_5$$4);
+		ZEPHIR_CONCAT_SVSV(&_5$$4, "[", &_4$$4, "] ", &message);
+		zephir_get_strval(&message, &_5$$4);
 		if (0) {
 			zephir_update_property_zval(this_ptr, SL("addTimeStamp"), &__$true);
 		} else {
@@ -215,17 +219,17 @@ PHP_METHOD(BlazePHP_Log, write) {
 		}
 	}
 	if (addNewLine == 1) {
-		ZEPHIR_INIT_VAR(&_5$$5);
-		ZEPHIR_CONCAT_VS(&_5$$5, &message, "\n");
-		ZEPHIR_CPY_WRT(&message, &_5$$5);
+		ZEPHIR_INIT_VAR(&_6$$5);
+		ZEPHIR_CONCAT_VS(&_6$$5, &message, "\n");
+		ZEPHIR_CPY_WRT(&message, &_6$$5);
 		if (1) {
 			zephir_update_property_zval(this_ptr, SL("addTimeStamp"), &__$true);
 		} else {
 			zephir_update_property_zval(this_ptr, SL("addTimeStamp"), &__$false);
 		}
 	}
-	zephir_read_property(&_6, this_ptr, SL("fp"), PH_NOISY_CC | PH_READONLY);
-	ZEPHIR_CALL_FUNCTION(NULL, "fputs", NULL, 8, &_6, &message);
+	zephir_read_property(&_7, this_ptr, SL("fp"), PH_NOISY_CC | PH_READONLY);
+	ZEPHIR_CALL_FUNCTION(NULL, "fputs", NULL, 8, &_7, &message);
 	zephir_check_call_status();
 	ZEPHIR_MM_RESTORE();
 
