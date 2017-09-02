@@ -68,7 +68,6 @@ O::$layouts = array(
 	)
 	,'www' => array(
 		 'public'
-		,'views'
 		,'conf'
 		,'model'
 		,'manager'
@@ -280,7 +279,11 @@ if(O::$moduleType === 'composer') {
 	M::send('SUCCESS', M::LEVEL_0, M::ADD_NEW_LINE, 'green');
 }
 else {
-	$makeModuleMap = __DIR__.'/makemodulecontrollersmap';
 	$moduleName    = O::$moduleName;
+
+	$makeModuleMap = __DIR__.'/makemodulecontrollersmap';
 	echo `$makeModuleMap --module-name=$moduleName`;
+
+	$makeModuleMap = __DIR__.'/makemodulemap';
+	echo `$makeModuleMap -v`;
 }

@@ -30,23 +30,27 @@ while($module = readdir($moduleListHandle)) {
 	M::send('MSG: Processing module ['.$module.']', M::LEVEL_1, M::NO_NEW_LINE);
 
 	$managerPath = realpath(dirname(__DIR__).'/module/'.$module.'/manager');
-	$directory   = new \RecursiveDirectoryIterator($managerPath);
-	$iterator    = new \RecursiveIteratorIterator($directory);
-	$phpFiles    = new \RegexIterator($iterator, '/^.+\.class\.php$/i', \RecursiveRegexIterator::GET_MATCH);
-	foreach($phpFiles as $name => $nullMe) {
-		$fileList[] = $name;
+	if(file_exists($managerPath) && is_dir($managerPath)) {
+		$directory   = new \RecursiveDirectoryIterator($managerPath);
+		$iterator    = new \RecursiveIteratorIterator($directory);
+		$phpFiles    = new \RegexIterator($iterator, '/^.+\.class\.php$/i', \RecursiveRegexIterator::GET_MATCH);
+		foreach($phpFiles as $name => $nullMe) {
+			$fileList[] = $name;
+		}
 	}
 
 
 	$modelPath = realpath(dirname(__DIR__).'/module/'.$module.'/model');
-	$directory   = new \RecursiveDirectoryIterator($modelPath);
-	$iterator    = new \RecursiveIteratorIterator($directory);
-	$phpFiles    = new \RegexIterator($iterator, '/^.+\.class\.php$/i', \RecursiveRegexIterator::GET_MATCH);
-	foreach($phpFiles as $name => $nullMe) {
-		if(preg_match('/\/sys\/sys_/', $name)) {
-			continue;
+	if(file_exists($modelPath) && is_dir($modelPath)) {
+		$directory   = new \RecursiveDirectoryIterator($modelPath);
+		$iterator    = new \RecursiveIteratorIterator($directory);
+		$phpFiles    = new \RegexIterator($iterator, '/^.+\.class\.php$/i', \RecursiveRegexIterator::GET_MATCH);
+		foreach($phpFiles as $name => $nullMe) {
+			if(preg_match('/\/sys\/sys_/', $name)) {
+				continue;
+			}
+			$fileList[] = $name;
 		}
-		$fileList[] = $name;
 	}
 
 	M::send(' SUCCESS', M::LEVEL_1, M::ADD_NEW_LINE, 'green');
