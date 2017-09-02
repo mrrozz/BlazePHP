@@ -42,7 +42,7 @@ G::$request = new Request();
  */
 $configLoc = MODULE_ROOT . '/conf/'.G::$request->getHostConfig().'.conf.php';
 if(!file_exists($configLoc)) {
-	throw new \Exception("The configuration file was not found.", 1);
+	throw new \Exception('The configuration file ['.G::$request->getHostConfig().'.conf.php] was not found.', 1);
 	exit;
 }
 require($configLoc);
