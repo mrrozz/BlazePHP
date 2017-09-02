@@ -134,7 +134,7 @@ foreach(O::$layouts[O::$moduleType] as $dir) {
 		$config = array();
 		$config[] = '<?php';
 		$config[] = O::$license;
-		$config[] = 'namespace BlazePHP;';
+		$config[] = 'namespace '.O::$namespace.';';
 		$config[] = 'use BlazePHP\Globals as G;';
 		$config[] = 'use BlazePHP\Database\ConnectionBoss;';
 		$config[] = '';
@@ -223,7 +223,7 @@ foreach(O::$layouts[O::$moduleType] as $dir) {
 		$controller = array();
 		$controller[] = '<?php';
 		$controller[] = O::$license;
-		$controller[] = 'namespace BlazePHP_Www;';
+		$controller[] = 'namespace '.O::$namespace.';';
 		$controller[] = '';
 		$controller[] = 'class MyControllerCTLR extends \BlazePHP\Controller';
 		$controller[] = '{';
