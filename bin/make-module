@@ -1,5 +1,19 @@
 #!/usr/bin/env php
 <?php
+/**
+ *
+ * BlazePHP.com - A framework for high performance
+ * Copyright 2012 - 2017, BlazePHP.com
+ *
+ * Licensed under The MIT License
+ * Any redistribution of this file's contents, both
+ * as a whole, or in part, must retain the above information
+ *
+ * @license       MIT License (http://www.opensource.org/licenses/mit-license.php)
+ * @copyright     2012 - 2017, BlazePHP.com
+ * @link          http://blazePHP.com
+ * @package       Blaze.
+ */
 namespace BlazePHP;
 use \BlazePHP\Globals as G;
 use \BlazePHP\Message as M;
@@ -281,9 +295,9 @@ if(O::$moduleType === 'composer') {
 else {
 	$moduleName    = O::$moduleName;
 
-	$makeModuleMap = __DIR__.'/makemodulecontrollersmap';
+	$makeModuleMap = __DIR__.'/make-module-controllers-map';
 	echo `$makeModuleMap --module-name=$moduleName`;
 
-	$makeModuleMap = __DIR__.'/makemodulemap';
+	$makeModuleMap = __DIR__.'/make-module-map';
 	echo `$makeModuleMap -v`;
 }

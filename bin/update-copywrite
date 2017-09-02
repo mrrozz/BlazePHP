@@ -1,0 +1,158 @@
+#!/usr/bin/env php
+<?php
+/**
+ *
+ * BlazePHP.com - A framework for high performance
+ * Copyright 2012 - 2017, BlazePHP.com
+ *
+ * Licensed under The MIT License
+ * Any redistribution of this file's contents, both
+ * as a whole, or in part, must retain the above information
+ *
+ * @license       MIT License (http://www.opensource.org/licenses/mit-license.php)
+ * @copyright     2012 - 2017, BlazePHP.com
+ * @link          http://blazePHP.com
+ * @package       Blaze.
+ */
+namespace BlazePHP;
+use \BlazePHP\Globals as G;
+use \BlazePHP\Message as M;
+use \BlazePHP\CLI;
+require(dirname(__DIR__).'/init/CLI.init.php');
+
+// Create the CLI object and pass in the arguments
+G::$cli = new CLI($argc, $argv);
+
+
+// CLI Option - Copyright Text
+$o              = new CLI\Option();
+$o->long        = 'copyright-text';
+$o->short       = 't';
+$o->required    = false;
+$o->default     = null;
+$o->description = 'The text to replace the content following any @copyright document parameter';
+G::$cli->addOption($o);
+
+// CLI Option - Search Path
+$o              = new CLI\Option();
+$o->long        = 'search-path';
+$o->short       = 's';
+$o->required    = false;
+$o->default     = ABS_ROOT;
+$o->description = 'The root path which to search for files that contain copywrite language.'."\n"
+                 .'NOTE: This search is recursive.  Be aware of any symbolic links to areas that '
+                 .'may not be desired for modification.';
+G::$cli->addOption($o);
+
+// Initilize the CLI
+initCLI::parse(G::$cli);
+
+class O extends Struct
+{
+	public static $skipPatterns;
+	public static $copyrightText;
+	public static $searchPath;
+}
+O::$skipPatterns = array(
+	 '/^(\.|\.\.)$/'
+	,'/\.git.*$/'
+	,'/\.DS_Store/'
+	,'/log/'
+	,'/\.(jpg|jpeg|gif|png)$/'
+	,'/empty/'
+	,'/sublime\-workspace/'
+);
+O::$copyrightText = G::$cli->copyrightText;
+O::$searchPath    = G::$cli->searchPath;
+
+
+function skip($file)
+{
+	$skip = false;
+	foreach(O::$skipPatterns as $pattern) {
+		if(preg_match($pattern, $file)) {
+			$skip = true;
+			break;
+		}
+	}
+
+	return $skip;
+}
+
+function search($location)
+{
+	if(skip($location)) {
+		return;
+	}
+
+	if(is_dir($location)) {
+		$root = opendir($location);
+		while($file = readdir($root)) {
+
+			if(skip($file)) {
+				continue;
+			}
+
+			$absFile = $location.'/'.$file;
+			search($absFile);
+		}
+	}
+	elseif(!skip(basename($location))) {
+		if(update($location)) {
+			M::send('UPDATED:       '.$location, M::LEVEL_0, M::ADD_NEW_LINE, 'blue');
+		}
+		else {
+			M::send('NOTHING FOUND: '.$location, M::LEVEL_0, M::ADD_NEW_LINE, 'yellow');
+		}
+	}
+}
+
+function update($absFile)
+{
+	// printre($absFile);
+	$lines      = file($absFile);
+	$newLines   = array();
+	$updateFile = false;
+	$i=0;
+	foreach($lines as $line) {
+
+		if(preg_match('/\.md$/', basename($absFile))) {
+			$pattern = '/^Copyright.*/';
+			$foundMatch = preg_match('/^Copyright(\s|\t)*/', $line, $prefixMatch);
+		}
+		else {
+			$pattern = '/^\s*\*\s*(\@{1})?(C|c)opyright.*$/';
+			$foundMatch = preg_match('/^\s*\*\s*(\@{1})?(C|c)opyright(\s|\t)*/', $line, $prefixMatch);
+		}
+
+		if($foundMatch === 1) {
+			$newLines[] = preg_replace($pattern, $prefixMatch[0].O::$copyrightText, $line);
+			$updateFile = true;
+		}
+		else {
+			$newLines[] = $line;
+		}
+	}
+
+
+	if($updateFile === true) {
+		// printre($newLines);
+		$fp = fopen($absFile, 'w');
+		fwrite($fp, implode('', $newLines));
+		fclose($fp);
+
+		return true; // File updated
+	}
+
+	return false; // No file update
+}
+
+
+
+
+if(file_exists(G::$cli->searchPath)) {
+	search(G::$cli->searchPath);
+}
+else {
+	G::$cli->error('['.G::$cli->searchPath.'] does not exist.  Please verify the file/directory location and try again.');
+}
