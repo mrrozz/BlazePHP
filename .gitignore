@@ -6,3 +6,6 @@ var/log/*.log
 var/checksum/*.checksum
 var/runtime/*.runtime
 phpext/blazephp/.temp
+phpext/blazephp/*.log
+phpext/blazephp/ext/*
+!phpext/blazephp/ext/kernel
