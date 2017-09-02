@@ -53,7 +53,7 @@ class Route extends Struct
 	public function parse()
 	{
 		if(empty($this->path)) {
-			throw new Exception( implode(' ', array(
+			throw new \Exception( implode(' ', array(
 				 __CLASS__.'::'.__FUNCTION__
 				,' - The path submitted is unknown. Please verify your route configuration and try again.'
 			)));
