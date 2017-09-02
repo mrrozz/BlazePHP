@@ -2,7 +2,7 @@
 /**
  *
  * BlazePHP.com - A framework for high performance
- * Copyright 2012 - 2015, BlazePHP.com
+ * Copyright 2012 - 2017, BlazePHP.com
  *
  * Licensed under The MIT License
  * Any redistribution of this file's contents, both
