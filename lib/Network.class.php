@@ -116,7 +116,7 @@ class Network
 		$options = array(
 			 CURLOPT_URL                  => $p->URL
 			,CURLOPT_HEADER               => 0
-			,CURLOPT_RETURNTRANSFER       => 1
+			,CURLOPT_RETURNTRANSFER       => 0
 			,CURLOPT_IPRESOLVE            => CURL_IPRESOLVE_V4
 			,CURLOPT_DNS_USE_GLOBAL_CACHE => 0
 			,CURLOPT_FILETIME             => 0
@@ -126,7 +126,7 @@ class Network
 			,CURLOPT_HEADER               => 0
 			,CURLINFO_HEADER_OUT          => 0
 			,CURLOPT_NETRC                => 1
-			,CURLOPT_FAILONERROR          => true
+			,CURLOPT_FAILONERROR          => false
 			,CURLOPT_CONNECTTIMEOUT       => $p->timeout
 		);
 
@@ -167,8 +167,10 @@ class Network
 
 		curl_setopt_array($ch, $options);
 
-		$response = curl_exec($ch);
-
+		ob_start();
+		curl_exec($ch);
+		$response = ob_get_contents();
+		ob_end_clean();
 
 		if (curl_errno($ch) !== 0) {
 			M::error(
