@@ -58,9 +58,8 @@ class Route extends Struct
 				,' - The path submitted is unknown. Please verify your route configuration and try again.'
 			)));
 		}
-		// printre($this->path);
-		$parts = explode('/', $this->path);
-		// printre($parts);
+
+		$parts            = explode('/', $this->path);
 		$this->controller = (isset($parts[0])) ? array_shift($parts) : null;
 		$this->action     = (isset($parts[0])) ? array_shift($parts) : null;
 
@@ -100,7 +99,6 @@ class Route extends Struct
 		);
 		$pathTemplate = preg_replace($search, $replace, $path);
 
-		// printr($pathTemplate);
 		if(!isset($this->aliases[$pathTemplate])) {
 			// Remove the leading forward slash
 			return substr($path, 1);
@@ -117,11 +115,6 @@ class Route extends Struct
 			preg_match_all($pattern, $path, $matches);
 			$allMatches[$types[$i++]] = $matches[0];
 		}
-
-		// printr($path);
-		// printr($pathTemplate);
-		// printr($translateTemplate);
-		// printr($allMatches);
 
 		$pathTranslated = $translateTemplate;
 		foreach($allMatches as $type => $values) {

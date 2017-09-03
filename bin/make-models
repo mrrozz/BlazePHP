@@ -25,10 +25,17 @@ require(dirname(__DIR__).'/init/CLI.init.php');
 // Create the CLI object and pass in the arguments
 G::$cli = new CLI($argc, $argv);
 
+// CLI Option - File header location
+$o              = new CLI\Option();
+$o->long        = 'file-header-location';
+$o->required    = true;
+$o->description = 'Location of the file containing the file headers/license/comments to be included with each model/manager created.';
+G::$cli->addOption($o);
+
 // CLI Option - Database config for the models
 $o              = new CLI\Option();
 $o->long        = 'db-config-model';
-$o->short       = 'd';
+// $o->short       = 'd';
 $o->required    = false;
 $o->default     = 'default';
 $o->description = 'The name of the database configuration that is used by the models created.  This is possibly different than the db-config-admin, as some database systems do not allow the required access needed to build a model with the user account(s) created that the software uses in production.';
@@ -37,7 +44,7 @@ G::$cli->addOption($o);
 // CLI Option - Database config for makemodels
 $o              = new CLI\Option();
 $o->long        = 'db-config-admin';
-$o->short       = 'd';
+// $o->short       = 'd';
 $o->required    = false;
 $o->default     = 'default';
 $o->description = 'The name of the database configuration that is used to generate the models/managers.';
@@ -124,6 +131,8 @@ initCLI::parse(G::$cli);
 
 class O extends Struct
 {
+	public static $fileHeaderLocation;
+	public static $fileHeader;
 	public static $tables;
 	public static $dbConfigModel;
 	public static $dbConfigAdmin;
@@ -143,6 +152,7 @@ class O extends Struct
 	public static $omitTextFieldsAsJson;
 }
 
+O::$fileHeaderLocation   = G::$cli->fileHeaderLocation;
 O::$tables               = G::$cli->tableList;
 O::$dbConfigModel        = G::$cli->dbConfigModel;
 O::$dbConfigAdmin        = G::$cli->dbConfigAdmin;
@@ -159,6 +169,18 @@ O::$omitTextFieldsAsJson = G::$cli->omitTextFieldsAsJson;
 O::$conn                 = null; // holds the database connection information
 
 
+/**
+ * Validate the location and contents of the file header
+ */
+if(!file_exists(O::$fileHeaderLocation)) {
+	M::error('ERROR: --file-header-location ['.O::$fileHeaderLocation.'] does not exist', M::ADD_NEW_LINE, 'red');
+	exit;
+}
+if(!is_file(O::$fileHeaderLocation)) {
+	M::error('ERROR: --file-header-location ['.O::$fileHeaderLocation.'] is not a file', M::ADD_NEW_LINE, 'red');
+	exit;
+}
+O::$fileHeader = file_get_contents(O::$fileHeaderLocation);
 
 /**
  *  Validate the database configuration
@@ -419,7 +441,7 @@ foreach(O::$tables as $table) {
 
 M::sendLineBreak(M::LEVEL_0);
 M::send('Rebuiding the module class map.', M::LEVEL_0, M::ADD_NEW_LINE, 'yellow');
-passthru(__DIR__.'/makemodulemap -v');
+passthru(__DIR__.'/make-module-map -v');
 
 
 
@@ -427,22 +449,22 @@ passthru(__DIR__.'/makemodulemap -v');
 
 function buildClassFile($attributes, $primaryKeys, $notEmpties, $className, $table, $blazeIDType)
 {
-	$blazeLicense = array();
-	$blazeLicense[] = '/**';
-	$blazeLicense[] = ' *';
-	$blazeLicense[] = ' * BlazePHP.com - A framework for high performance';
-	$blazeLicense[] = ' * Copyright 2012 - '.date('Y').', BlazePHP.com';
-	$blazeLicense[] = ' *';
-	$blazeLicense[] = ' * Licensed under The MIT License';
-	$blazeLicense[] = ' * Any redistribution of this file\'s contents, both';
-	$blazeLicense[] = ' * as a whole, or in part, must retain the above information';
-	$blazeLicense[] = ' *';
-	$blazeLicense[] = ' * @license       MIT License (http://www.opensource.org/licenses/mit-license.php)';
-	$blazeLicense[] = ' * @copyright     Copyright 2012 - '.date('Y').', BlazePHP.com';
-	$blazeLicense[] = ' * @link          http://blazePHP.com';
-	$blazeLicense[] = ' * @package       Blaze.';
-	$blazeLicense[] = ' */';
-	$blazeLicense = implode("\n", $blazeLicense);
+	// $blazeLicense = array();
+	// $blazeLicense[] = '/**';
+	// $blazeLicense[] = ' *';
+	// $blazeLicense[] = ' * BlazePHP.com - A framework for high performance';
+	// $blazeLicense[] = ' * Copyright 2012 - '.date('Y').', BlazePHP.com';
+	// $blazeLicense[] = ' *';
+	// $blazeLicense[] = ' * Licensed under The MIT License';
+	// $blazeLicense[] = ' * Any redistribution of this file\'s contents, both';
+	// $blazeLicense[] = ' * as a whole, or in part, must retain the above information';
+	// $blazeLicense[] = ' *';
+	// $blazeLicense[] = ' * @license       MIT License (http://www.opensource.org/licenses/mit-license.php)';
+	// $blazeLicense[] = ' * @copyright     Copyright 2012 - '.date('Y').', BlazePHP.com';
+	// $blazeLicense[] = ' * @link          http://blazePHP.com';
+	// $blazeLicense[] = ' * @package       Blaze.';
+	// $blazeLicense[] = ' */';
+	// $blazeLicense = implode("\n", $blazeLicense);
 
 	// Determine if this is a normal object or a multi-primary-key object
 	$isMultiPrimary = false;
@@ -452,7 +474,7 @@ function buildClassFile($attributes, $primaryKeys, $notEmpties, $className, $tab
 
 	$blazeObject = array();
 	$blazeObject[] = '<?php';
-	$blazeObject[] = $blazeLicense;
+	$blazeObject[] = O::$fileHeader;
 	$blazeObject[] = '';
 	$blazeObject[] = '';
 	if(!empty(O::$namespace)) {
@@ -551,7 +573,7 @@ function buildClassFile($attributes, $primaryKeys, $notEmpties, $className, $tab
 	if(O::$makeManagers) {
 		$blazeManager = array();
 		$blazeManager[] = '<?php';
-		$blazeManager[] = $blazeLicense;
+		$blazeManager[] = O::$fileHeader;
 		$blazeManager[] = '';
 		$blazeManager[] = '';
 		if(!empty(O::$namespace)) {
@@ -586,7 +608,7 @@ function buildClassFile($attributes, $primaryKeys, $notEmpties, $className, $tab
 	if(!empty(O::$modelsDir) && O::$makeDeveloperModels === true) {
 		$developerClass = array();
 		$developerClass[] = '<?php';
-		$developerClass[] = $blazeLicense;
+		$developerClass[] = O::$fileHeader;
 		$developerClass[] = '';
 		$developerClass[] = '';
 		if(!empty(O::$namespace)) {

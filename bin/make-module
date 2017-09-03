@@ -199,7 +199,7 @@ foreach(O::$layouts[O::$moduleType] as $dir) {
 			$config[] = '	}';
 			$config[] = '}';
 			$config[] = '';
-			$config[] = '/* Initiate the database configuration */';
+			$config[] = '/* Initiate the route configuration */';
 			$config[] = 'G::$route = new Route();';
 		}
 
