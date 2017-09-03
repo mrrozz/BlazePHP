@@ -1,4 +1,84 @@
-BlazePHP - A light weight (*seriously*), fast, horizontally scalable, professionals' framework.
+## BlazePHP - A light weight (*seriously*), fast, horizontally scalable, professionals' framework.
+
+### BlazePHP Hierarchy Overview
+
+	BlazePHP_ROOT
+		|
+		/bin    - The utilities for managing/developing the modules
+		|
+		/init   - The initialization files used for the various environments (*CLI, API, etc.*)
+		|
+		/lib    - Common core libraries
+		|
+		/phpext - Zephir libraries that are compiled into binary PHP extensions
+		|
+		/test   - Automated testing
+		|
+		/var    - BlazePHP system files (logs, temp files, locks, etc)
+		|
+		/module - The development playground (other frameworks call this "app")
+
+
+### Module Types and Hierarchy Overview
+
+		Module_www
+			|
+			/conf         - Configuration for the module
+			|
+			/controller   - Controllers that handle all web based reqeusts
+			|
+			/manager      - Managers
+			|
+			/model        - Models
+			|
+			/public       - The web server point of entry and all public assets (CSS,JS,images,etc)
+			|
+			/view         - View templates
+			|
+			/view-element - View elements
+
+
+		Module_api
+			|
+			/conf       - Configuration for the module
+			|
+			/controller - Controllers that handle all web based reqeusts
+			|
+			/manager    - Managers
+			|
+			/model      - Models
+			|
+			/public     - The web server point of entry
+
+
+		Module_cli
+			|
+			/bin     - CLI scripts
+			|
+			/conf    - Configuration for the module
+			|
+			/manager - Managers
+			|
+			/model   - Models
+
+
+		Module_shared
+			|
+			/conf    - Configuration for the module
+			|
+			/manager - Managers
+			|
+			/model   - Models
+
+
+		/Module_composer
+			|
+			/vendor              - Composer installed libraries
+			|
+			/composer.phar       - Composer executable
+			|
+			/composer-setup.php  - Composer setup script (no use past installation)
+
 
 
 ### Prerequisites
