@@ -23,8 +23,13 @@ ini_set('max_execution_time', '0');
 
 date_default_timezone_set('UTC');
 
-define('ABS_ROOT', dirname(__DIR__));
-define('ABS_VAR',  ABS_ROOT.'/var');
+define('ABS_ROOT',      dirname(__DIR__));
+define('ABS_VAR',       ABS_ROOT.'/var');
+define('ABS_TMP',       ABS_ROOT.'/var/tmp');
+define('ABS_LOCK',      ABS_ROOT.'/var/lock');
+define('ABS_RUNTIME',   ABS_ROOT.'/var/runtime');
+define('ABS_LOG',       ABS_ROOT.'/var/log');
+define('ABS_CHECKSUM',  ABS_ROOT.'/var/checksum');
 
 require_once(ABS_ROOT.'/lib/Struct.class.php');
 require_once(ABS_ROOT.'/lib/Globals.class.php');
