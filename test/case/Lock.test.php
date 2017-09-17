@@ -22,7 +22,9 @@ final class LockTest extends TestCase
 {
 	public function testInstanceCreates()
 	{
-		$this->assertInstanceOf(Lock::class, new Lock(__CLASS__));
+		$lock = new Lock(__CLASS__);
+		$this->assertInstanceOf(Lock::class, $lock);
+		unset($lock);
 	}
 
 	public function testLogFileLocation()

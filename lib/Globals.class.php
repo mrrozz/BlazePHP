@@ -33,6 +33,7 @@ class Globals extends Struct
 	public static $db;
 	public static $cli;
 	public static $log;
+	public static $lock;
 	public static $verbose;
 	public static $moduleMap;
 	public static $controllerMap;
