@@ -23,8 +23,8 @@ class UniqueId
 
 		let thisSecond   = date("YmdHis") . microtime(true);
 		let lock         = new Lock("blaze_session_lock-" . thisSecond);
-		let id     = prefix . uniqid(1, true) . suffix;
-		let lock = null;
+		let id           = prefix . uniqid(1, true) . suffix;
+		let lock         = null;
 
 		return id;
 	}

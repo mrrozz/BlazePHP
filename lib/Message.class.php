@@ -49,11 +49,13 @@ class Message extends Struct
 
 	public static function send($message, $level=1, $addNewLine=true, $color=null)
 	{
-		if(!empty($color)) {
-			G::$cli->verbose(G::$cli->colorize($message, $color), $level, $addNewLine);
-		}
-		else {
-			G::$cli->verbose($message, $level, $addNewLine);
+		if(isset(G::$cli) && is_object(G::$cli) && get_class(G::$cli) == 'BlazePHP\CLI') {
+			if(!empty($color)) {
+				G::$cli->verbose(G::$cli->colorize($message, $color), $level, $addNewLine);
+			}
+			else {
+				G::$cli->verbose($message, $level, $addNewLine);
+			}
 		}
 
 		if(isset(G::$log) && is_object(G::$log) && get_class(G::$log) == 'BlazePHP\Log') {
