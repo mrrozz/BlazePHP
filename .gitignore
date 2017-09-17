@@ -3,9 +3,13 @@ tmp-dev
 module/mod-*
 module/object.map.php
 var/log/*.log
+var/tmp/*
+!var/tmp/empty
+var/lock/*
+!var/lock/empty
 var/checksum/*.checksum
 var/runtime/*.runtime
 phpext/blazephp/.temp
 phpext/blazephp/*.log
-phpext/blazephp/ext/*
+phpext/blazephp/ext
 !phpext/blazephp/ext/kernel
