@@ -15,6 +15,7 @@
  */
 namespace BlazePHP\Database;
 use \BlazePHP\Globals as G;
+use \BlazePHP\Struct;
 
 /**
  * MySQL Object Manager class handles all collections of MySQL objects.
@@ -207,6 +208,11 @@ class MySQLObjectManager
 	{
 		return $this->dbMaster->escape($string);
 	}
+
+	public static function makeMLO()
+	{
+		return new ManagerListOptions();
+	}
 }
 
 
@@ -217,6 +223,7 @@ class ManagerListOptions extends Struct
 	public $start      = 0;
 	public $count      = null; // Return all records
 	public $fields     = '*';
+	public $omitFields = null;
 	public $conditions = null;
 	public $dumpSQL    = false;
 }

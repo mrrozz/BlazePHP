@@ -61,7 +61,7 @@ class MySQLObject
 	 * @param $attributeList - List of table column mapped attributes Array([column] => [type]....)
 	 *
 	 */
-	public function __construct($id = null, stdClass $dbConnection = null, $dbTableName = null, $attributeList = null)
+	public function __construct($id = null, \stdClass $dbConnection = null, $dbTableName = null, $attributeList = null)
 	{
 		if ($dbConnection === null) {
 			if(G::$db->load_data_config === false) {
@@ -76,7 +76,7 @@ class MySQLObject
 			$db = G::$db;
 
 			if (!$this::$__dbConnectionName || !isset($db->{$this::$__dbConnectionName})) {
-				throw new Exception(
+				throw new \Exception(
 					__CLASS__.'::'.__FUNCTION__.' - The $dbConnectionName ['.$this::$__dbConnectionName.'] is invalid.'
 				);
 			}
@@ -130,7 +130,7 @@ class MySQLObject
 	 */
 	public function getManagerInfo()
 	{
-		$info = new stdClass();
+		$info = new \stdClass();
 		$info->dbConnectionName = $this::$__dbConnectionName;
 		$info->dbTableName      = $this::$__dbTableName;
 		return $info;
@@ -209,7 +209,7 @@ class MySQLObject
 		if ($object) {
 			$objectAttributes = get_object_vars($object);
 			//$validAttributes = array_diff(array_keys($this->__attributeList), array('id'));
-			$validAttributes =& array_keys($this->__attributeList);
+			$validAttributes = array_keys($this->__attributeList);
 
 			foreach ($objectAttributes as $name => $value) {
 				if (in_array($name, $validAttributes)) {
@@ -266,7 +266,7 @@ class MySQLObject
 					}
 
 					if($missingMethod === true) {
-						throw new Exception(
+						throw new \Exception(
 							__CLASS__.'::'.__FUNCTION__.' - The validation method does not exist ['.$validator.']'
 						);
 					}
@@ -326,7 +326,7 @@ class MySQLObject
 					}
 
 					if($missingMethod === true) {
-						throw new Exception(
+						throw new \Exception(
 							__CLASS__.'::'.__FUNCTION__.' - The custom unpacking method does not exist ['.$packer.']'
 						);
 					}
@@ -359,7 +359,7 @@ class MySQLObject
 	public function isUnique($value, $attribute, $htmlSafe=true)
 	{
 		if(!$this->isAttribute($attribute)) {
-			throw new Exception(
+			throw new \Exception(
 				__CLASS__.'::'.__FUNCTION__.' - The attribute provided is not valid ['.$attribute.']'
 			);
 		}
@@ -378,7 +378,7 @@ class MySQLObject
 		$result = $this->__dbSlave->query(implode(' ', $sql));
 
 		if(false === $result) {
-			throw new Exception(
+			throw new \Exception(
 				__CLASS__.'::'.__FUNCTION__.' - '.$this->__dbMaster->error
 			);
 		}
@@ -420,9 +420,9 @@ class MySQLObject
 	public function getValues()
 	{
 		if(!is_array($this->__attributeValues) || count($this->__attributeValues) <= 0) {
-			return new stdClass();
+			return new \stdClass();
 		}
-		$values = new stdClass();
+		$values = new \stdClass();
 		foreach($this->__attributeValues as $key => $value) {
 			$values->{$key} = $value;
 		}
@@ -442,7 +442,7 @@ class MySQLObject
 	public function save($debug=false)
 	{
 		if ($this->__error === true) {
-			throw new Exception(
+			throw new \Exception(
 				__CLASS__.'::'.__FUNCTION__.' - '.$this->__errorMessage
 			);
 		}
@@ -503,7 +503,7 @@ class MySQLObject
 			}
 
 			if (false === $this->__dbMaster->query($sql)) {
-				throw new Exception(
+				throw new \Exception(
 					__CLASS__.'::'.__FUNCTION__.' - '.$this->__dbMaster->error
 				);
 			}
@@ -549,7 +549,7 @@ class MySQLObject
 		$sql = 'DELETE FROM `'.$this::$__dbTableName.'` WHERE `id` = '.$this->id;
 
 		if (false === $this->__dbMaster->query($sql)) {
-			throw new Exception(
+			throw new \Exception(
 				__CLASS__.'::'.__FUNCTION__.' - '.$this->__dbMaster->error
 			);
 		}
@@ -645,7 +645,7 @@ class MySQLObject
 	{
 		if ($type == 'object') {
 			if($value === null) {
-				return new stdClass();
+				return new \stdClass();
 			}
 			return json_decode($value);
 		}
@@ -659,7 +659,7 @@ class MySQLObject
 			return explode(',', $value);
 		}
 		else if ($type == 'timestamp' && !empty($value)) {
-			return new DateTime($value);
+			return new \DateTime($value);
 		}
 		else if ($type == 'set') {
 			if(empty($value)) {
