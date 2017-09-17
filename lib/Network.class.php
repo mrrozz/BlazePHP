@@ -349,6 +349,48 @@ class Network
 			return new GETParameters();
 		}
 	}
+
+
+
+	public static function downloadFileHTTP($httpFileLocation, $destinationLocation)
+	{
+		if(!file_exists(dirname($destinationLocation))) {
+			throw new \Exception(
+				__CLASS__.'::'.__FUNCTION__.' - The destination directory does not exist ['.dirname($destinationLocation).']'
+			);
+		}
+		if(!is_dir(dirname($destinationLocation))) {
+			throw new \Exception(
+				__CLASS__.'::'.__FUNCTION__.' - The destination directory specified is not a directory ['.dirname($destinationLocation).']'
+			);
+		}
+		$destinationFile = fopen($destinationLocation, 'w');
+
+		if(!filter_var($httpFileLocation, FILTER_VALIDATE_URL)) {
+			throw new \Exception(
+				__CLASS__.'::'.__FUNCTION__.' - The source URL specified is not valid ['.$httpFileLocation.']'
+			);
+		}
+
+		$options = array(
+			 CURLOPT_RETURNTRANSFER => 1
+			,CURLOPT_FILE    => $destinationFile
+			,CURLOPT_TIMEOUT => 28800 // set this to 8 hours so we dont timeout on big files
+			,CURLOPT_URL     => $httpFileLocation
+		);
+
+		$ch = curl_init();
+		curl_setopt_array($ch, $options);
+		$response = curl_exec($ch);
+		if($response === false) {
+			throw new \Exception(
+				__CLASS__.'::'.__FUNCTION__.' - The download was not successful: '.curl_error($ch)
+			);
+		}
+		curl_close($ch);
+
+		return true;
+	}
 }
 
 
