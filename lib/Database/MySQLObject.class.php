@@ -493,8 +493,7 @@ class MySQLObject
 			array_unshift($set, '`id`='.Toolbox::makeGUID($this->__dbMaster->nodeID));
 		}
 
-
-		if (count($set) > 0) {
+		if (($this->__isNew === true && count($set) > 0) || (count($newChecksumValues) > 0 && count($set) > 0)) {
 			if ($this->__isNew === true) {
 				$sql = 'INSERT INTO `'.$this::$__dbTableName.'` SET '.implode(', ', $set);
 			}
@@ -576,6 +575,9 @@ class MySQLObject
 	{
 		if($value === null && $forSQL === true) {
 			return 'NULL';
+		}
+		else if($value === null) {
+			return null;
 		}
 		else if ($type == 'string') {
 			if ($forSQL) {
