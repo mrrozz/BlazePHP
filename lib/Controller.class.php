@@ -53,4 +53,10 @@ abstract class Controller extends Struct
 		echo json_encode($output);
 		return;
 	}
+
+	public function invalidRequest()
+	{
+		header("HTTP/1.0 405 Method Not Allowed");
+		die('Method Not Allowed');
+	}
 }
