@@ -132,11 +132,33 @@ class connPostgres extends \BlazePHP\Struct
 		if($debug) {
 			printre(array($this->C, $sql));
 		}
-		$this->result = pg_query($this->C, $sql);
-		// printre(pg_result_error($this->result));
-		if (!$this->result) {
-			$error = pg_result_error($this->result);
-			throw new \ErrorException('Posgres Error: ['.$error."\n".'SQL: '.$sql);
+
+		if(false === pg_send_query($this->C, $sql)) {
+			throw new Exception( implode(' ', array(
+				 __CLASS__.'::'.__FUNCTION__
+				,' - SQL Query error: Failed to send query [SQL: '.$sql.']'
+			)));
+		}
+		$this->result = pg_get_result($this->C);
+		$state        = pg_result_error_field($this->result, PGSQL_DIAG_SQLSTATE);
+		// printre($state);
+		if ($state != 0) {
+			$errorDetails = array(
+				 'SEVERITY'           => pg_result_error_field($this->result, PGSQL_DIAG_SEVERITY)
+				,'SQLSTATE'           => $state
+				,'MESSAGE_PRIMARY'    => pg_result_error_field($this->result, PGSQL_DIAG_MESSAGE_PRIMARY)
+				,'MESSAGE_DETAIL'     => pg_result_error_field($this->result, PGSQL_DIAG_MESSAGE_DETAIL)
+				// ,'MESSAGE_HINT'       => pg_result_error_field($this->result, PGSQL_DIAG_MESSAGE_HINT)
+				// ,'STATEMENT_POSITION' => pg_result_error_field($this->result, PGSQL_DIAG_STATEMENT_POSITION)
+				// ,'INTERNAL_POSITION'  => pg_result_error_field($this->result, PGSQL_DIAG_INTERNAL_POSITION)
+				// ,'INTERNAL_QUERY'     => pg_result_error_field($this->result, PGSQL_DIAG_INTERNAL_QUERY)
+				// ,'CONTEXT'            => pg_result_error_field($this->result, PGSQL_DIAG_CONTEXT)
+				// ,'SOURCE_FILE'        => pg_result_error_field($this->result, PGSQL_DIAG_SOURCE_FILE)
+				// ,'SOURCE_LINE'        => pg_result_error_field($this->result, PGSQL_DIAG_SOURCE_LINE)
+				// ,'SOURCE_FUNCTION'    => pg_result_error_field($this->result, PGSQL_DIAG_SOURCE_FUNCTION)
+				,'SQL'                => $sql
+			);
+			throw new \ErrorException(json_encode($errorDetails));
 		}
 
 		return $this->result;
