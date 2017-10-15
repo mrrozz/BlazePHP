@@ -42,20 +42,6 @@ class initCLI extends \BlazePHP\initCLI_common
 		$cli->addOption($o);
 
 
-
-		// Load the configuration
-		// if($cli->config !== null) {
-		// 	$configName = $cli->config;
-		// 	$configName = preg_replace('/[^A-Za-z0-9\-]/', '', $configName);
-		// 	if(!file_exists(ABS_ROOT.'/conf/'.$configName.'.conf.php')) {
-		// 		// $cli->error('The configuration ['.$configName.'] was not found.  Please review your options and try again');
-		// 		exit;
-		// 	}
-		// 	else {
-		// 		require(ABS_ROOT.'/conf/'.$configName.'.conf.php');
-		// 	}
-		// }
-
 		parent::parse($cli);
 
 		// Validate the module
