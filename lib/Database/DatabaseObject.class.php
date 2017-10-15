@@ -14,8 +14,9 @@
  *
  */
 namespace BlazePHP\Database;
-use \BlazePHP\Globals as G;
-use \BlazePHP\Message as M;
+use BlazePHP\Globals as G;
+use BlazePHP\Message as M;
+use BlazePHP\Struct;
 
 
 /**
@@ -30,4 +31,14 @@ define('BLAZE_OBJECT_ID_AUTO', 'AUTO');
 abstract class DatabaseObject
 {
 
+}
+
+
+class ManagerListOptions extends Struct
+{
+	public $start      = 0;
+	public $count      = null; // Return all records
+	public $fields     = '*';
+	public $conditions = null;
+	public $dumpSQL    = false;
 }

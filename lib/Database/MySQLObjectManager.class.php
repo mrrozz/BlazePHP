@@ -219,16 +219,3 @@ class MySQLObjectManager
 		return new ManagerListOptions();
 	}
 }
-
-
-
-
-class ManagerListOptions extends Struct
-{
-	public $start      = 0;
-	public $count      = null; // Return all records
-	public $fields     = '*';
-	public $omitFields = null;
-	public $conditions = null;
-	public $dumpSQL    = false;
-}

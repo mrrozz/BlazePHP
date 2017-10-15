@@ -539,9 +539,6 @@ class MySQLObject extends DatabaseObject
 		if(!$this->id) {
 			return true;
 		}
-		else {
-			return false;
-		}
 
 		$sql = 'DELETE FROM `'.$this::$__dbTableName.'` WHERE `id` = '.$this->id;
 
