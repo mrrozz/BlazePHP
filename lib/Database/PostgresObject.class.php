@@ -14,6 +14,7 @@
  *
  */
 namespace BlazePHP\Database;
+use \BlazePHP\Database\DatabaseObject;
 use \BlazePHP\Globals as G;
 use \BlazePHP\Message as M;
 
@@ -24,9 +25,7 @@ use \BlazePHP\Message as M;
  * @package   Blaze.Core
  *
  */
-define('BLAZE_OBJECT_ID_GUID', 'GUID');
-define('BLAZE_OBJECT_ID_AUTO', 'AUTO');
-class PostgresObject
+class PostgresObject extends DatabaseObject
 {
 	protected $__attributeValues;
 	protected $__attributeChecksum;   // Holds a checksum of the original data per attribute

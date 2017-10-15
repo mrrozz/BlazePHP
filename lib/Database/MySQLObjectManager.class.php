@@ -209,6 +209,11 @@ class MySQLObjectManager
 		return $this->dbMaster->escape($string);
 	}
 
+	public function quote($string)
+	{
+		return $this->dbMaster->quote($string);
+	}
+
 	public static function makeMLO()
 	{
 		return new ManagerListOptions();

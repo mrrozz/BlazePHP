@@ -211,6 +211,11 @@ class PostgresObjectManager
 		return $this->dbMaster->escape($string);
 	}
 
+	public function quote($string)
+	{
+		return $this->dbMaster->quote($string);
+	}
+
 	public function makeMLO()
 	{
 		return new ManagerListOptions();

@@ -30,6 +30,18 @@ class Log extends Struct
 
 	public level;
 
+	const LEVEL_0 = 0; // Log nothing
+	const LEVEL_1 = 1;
+	const LEVEL_2 = 2;
+	const LEVEL_3 = 3;
+	const LEVEL_4 = 4;
+	const LEVEL_5 = 5;
+	const LEVEL_6 = 6;
+	const LEVEL_7 = 7;
+	const LEVEL_8 = 8;
+	const LEVEL_9 = 9; // Log everything
+
+
 	public function __construct(string namePrefix, int level)
 	{
 		let this->level = level;
