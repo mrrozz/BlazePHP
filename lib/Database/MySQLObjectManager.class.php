@@ -51,6 +51,27 @@ class MySQLObjectManager
 	}
 
 
+	/**
+	 * Returns the master database connection for the managed object
+	 *
+	 * @return object
+	 */
+	public function getDbMaster()
+	{
+		return $this->dbMaster;
+	}
+
+
+	/**
+	 * Returns the slave database connection for the managed object
+	 *
+	 * @return object
+	 */
+	public function getDbSlave()
+	{
+		return $this->dbSlave;
+	}
+
 
 
 
