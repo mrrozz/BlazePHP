@@ -78,7 +78,6 @@ class MySQLObjectManager
 	public function getCount(ManagerListOptions $mlo)
 	{
 		$sql = array();
-		$sql = array();
 		$sql[] = 'SELECT';
 		$sql[] = '  COUNT(1) AS `totalCount`';
 		$sql[] = 'FROM';

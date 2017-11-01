@@ -101,7 +101,7 @@ class Route extends Struct
 
 		if(!isset($this->aliases[$pathTemplate])) {
 			// Remove the leading forward slash
-			return substr($path, 1);
+			return trim($path, '/');
 		}
 
 		// Get the tranlation template
