@@ -100,7 +100,7 @@ class Route extends Struct
 		$pathTemplate = preg_replace($search, $replace, $path);
 
 		if(!isset($this->aliases[$pathTemplate])) {
-			// Remove the leading forward slash
+			// Remove the leading and trailing forward slash
 			return trim($path, '/');
 		}
 
@@ -123,7 +123,7 @@ class Route extends Struct
 			}
 		}
 
-		// Remove the leading forward slash
-		return substr($pathTranslated, 1);
+		// Remove the leading and trailing forward slash
+		return trim($pathTranslated, '/');
 	}
 }
