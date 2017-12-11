@@ -79,7 +79,7 @@ class MySQLObjectMultiPrimary extends MySQLObject
 
 		if ($dbConnection === null) {
 			if(G::$db->load_data_config === false) {
-				throw new ErrorException(
+				throw new \ErrorException(
 					'MySQLObject: The Environtment configuration is not set to load any database configuration.'
 					.'Set Environment::load_data_config = true; and ensure you have conigured a database connection.'
 				);
@@ -87,8 +87,8 @@ class MySQLObjectMultiPrimary extends MySQLObject
 			$db = G::$db;
 
 			if (!$this::$__dbConnectionName || !isset($db->{$this::$__dbConnectionName})) {
-				throw new ErrorException(
-					'MySQLObject: The $dbConnectionName ['.$this::$__dbConnectionName.'] is invalid.'
+				throw new \ErrorException(
+					'MySQLObject: The $dbConnectionName ['.$this::$__dbConnectionName.'] is invalid. - '
 				);
 			}
 
@@ -143,7 +143,7 @@ class MySQLObjectMultiPrimary extends MySQLObject
 	 *
 	 * @return boolean - True on Success, False on Failure
 	 */
-	public function save()
+	public function save($debug=false)
 	{
 		if ($this->__error === true) {
 			throw new Exception(
