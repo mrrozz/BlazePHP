@@ -30,6 +30,7 @@ define('ABS_LOCK',      ABS_ROOT.'/var/lock');
 define('ABS_RUNTIME',   ABS_ROOT.'/var/runtime');
 define('ABS_LOG',       ABS_ROOT.'/var/log');
 define('ABS_CHECKSUM',  ABS_ROOT.'/var/checksum');
+define('ABS_MODULE',    ABS_ROOT.'/module');
 
 require_once(ABS_ROOT.'/lib/Struct.class.php');
 require_once(ABS_ROOT.'/lib/Globals.class.php');
