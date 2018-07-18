@@ -53,7 +53,7 @@ class LocalPHP
 
 	public function URLToken()
 	{
-		return (defined('SID') && !empty(SID)) ? SID : session_name().'='.session_id();
+		return session_name().'='.session_id();
 	}
 
 	public function status()

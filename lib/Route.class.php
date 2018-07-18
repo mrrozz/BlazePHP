@@ -15,6 +15,7 @@
  */
 namespace BlazePHP;
 use BlazePHP\Globals as G;
+use BlazePHP\Debug   as D;
 
 /**
  * Globals
@@ -29,7 +30,7 @@ class Route extends Struct
 	protected $aliases;
 	protected $controller;
 	protected $action;
-	protected $parameters;
+	protected $parameters = array();
 
 	public function __construct()
 	{
@@ -41,13 +42,52 @@ class Route extends Struct
 	{
 		return strtolower($this->controller);
 	}
+
 	public function getAction()
 	{
 		return (!empty($this->action)) ? strtolower($this->action) : 'index';
 	}
+
 	public function getParameters()
 	{
 		return $this->parameters;
+	}
+
+	public function translate($path)
+	{
+		// %i - the argument is treated as an unsigned integer with no variable assignment
+		$parts           = explode('/', preg_replace('/^\/*/', '', $path));
+		$test            = '';
+		$realPath        = null;
+		$parameters      = '';
+		$parameterValues = array();
+		$found           = false;
+
+		foreach($parts as $part) {
+			$partCheck = preg_replace('/^[0-9]+$/', '%i', $part);
+			$test     .= '/'.$partCheck;
+			if(isset($this->aliases[$test])) {
+				$realPath        = $this->aliases[$test];
+				$found          = true;
+				$parameters      = '';
+				$parameterValues[] = $part;
+			}
+			elseif(!is_null($realPath)) {
+				$parameterValues = array();
+				$found = false;
+			}
+		}
+		$v = count($parameterValues);
+		for($i=1; $i<=$v; $i++) {
+			$realPath = preg_replace('/\$i'.$i.'/', $parameterValues[$i-1], $realPath);
+		}
+
+		if($found) {
+			return $realPath.$parameters;
+		}
+		else {
+			return $path;
+		}
 	}
 
 	public function parse()
@@ -59,22 +99,32 @@ class Route extends Struct
 			)));
 		}
 
-		$parts            = explode('/', $this->path);
+		$parts            = explode('/', preg_replace('/^\/*/', '', $this->path));
 		$this->controller = (isset($parts[0])) ? array_shift($parts) : null;
 		$this->action     = (isset($parts[0])) ? array_shift($parts) : null;
 
 		$partsCount = count($parts);
+		$key        = null;
 		for($i=0; $i<$partsCount; $i++) {
 			$part = array_shift($parts);
 			if(preg_match('/\:/', $part)) {
 				list($key, $value) = explode(':', $part);
 				$this->parameters[$key] = $value;
 			}
-			else if(preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $part)) {
-				$this->parameters[$part] = true;
+			else if(preg_match('/^[a-zA-Z_][a-zA-Z0-9\-]*$/', $part)) {
+				if(is_null($key)) {
+					$key = $part;
+				}
+				else {
+					$this->parameters[$key] = $part;
+					$key = null;
+				}
 			}
 			else {
 				// TODO: Log an invalid parameter
+			}
+			if(!is_null($key) && !isset($this->parameters[$key])) {
+				$this->parameters[$key] = true;
 			}
 		}
 	}
@@ -82,48 +132,5 @@ class Route extends Struct
 	public function alias($path, $alias)
 	{
 		$this->aliases[$alias] = $path;
-	}
-
-	public function translate($path)
-	{
-		// %i - the argument is treated as an unsigned integer with no variable assignment
-		// %s - the argument is treated as and presented as a string matching the following pattern '[a-zA-Z0-9_\-\.] and is the value of an assignment'.
-
-		$search = array(
-			 '/\/[0-9]+/'
-			,'/\:[a-zA-Z0-9_\-\.]+/'
-		);
-		$replace = array(
-			 '/%i'
-			,':%s'
-		);
-		$pathTemplate = preg_replace($search, $replace, $path);
-
-		if(!isset($this->aliases[$pathTemplate])) {
-			// Remove the leading and trailing forward slash
-			return trim($path, '/');
-		}
-
-		// Get the tranlation template
-		$translateTemplate = $this->aliases[$pathTemplate];
-
-		// Find all value matches from the path
-		$allMatches = array();
-		$i = 0;
-		$types = array(0 => '$i', 1 => '$s');
-		foreach($search as $pattern) {
-			preg_match_all($pattern, $path, $matches);
-			$allMatches[$types[$i++]] = $matches[0];
-		}
-
-		$pathTranslated = $translateTemplate;
-		foreach($allMatches as $type => $values) {
-			foreach($values as $number => $value) {
-				$pathTranslated = str_replace($type.($number+1), substr($value, 1), $pathTranslated);
-			}
-		}
-
-		// Remove the leading and trailing forward slash
-		return trim($pathTranslated, '/');
 	}
 }

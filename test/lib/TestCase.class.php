@@ -270,6 +270,16 @@ class TestCase
 	}
 
 
+	public function assertValueEquals($value1, $value2)
+	{
+		if($value1 !== $value2) {
+			throw new \Exception( implode(' ', array(
+				 __CLASS__.'::'.__FUNCTION__
+				,'FALSE ['.$value1.'] DOES NOT EQUAL ['.$value2.']'
+			)));
+		}
+	}
+
 
 
 

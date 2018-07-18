@@ -17,6 +17,7 @@ namespace BlazeTest;
 use \BlazePHP\Session as S;
 use \BlazePHP\SessionConfig;
 use \BlazePHP\Struct;
+use \BlazePHP\Debug   as D;
 use BlazeTest\TestCase;
 
 
@@ -24,17 +25,28 @@ final class SessionTest extends TestCase
 {
 	public function testInstanceCreates()
 	{
-		$conf = new SessionConfig();
-		$this->assertInstanceOf(S::class, new S($conf));
+		$this->assertInstanceOf(S::class, new S());
 	}
 
-	public function testSetConfig()
+	public function testSetVariable()
 	{
-		$conf = new SessionConfig();
+		$session = new S();
+		$session->test = 'test';
+		$this->assertValueEquals($session->test, 'test');
+	}
 
-		$session = new S($conf);
-		printre($session);
+	public function testGetVariable()
+	{
+		$session = new S();
+		$this->assertValueEquals($session->test, 'test');
+	}
 
+	public function testGetURLToken()
+	{
+		$session = new S();
+		$urlToken = $session->URLToken();
+		$match = preg_match('/PHPSESSID\=[a-z0-9]+$/', $urlToken);
+		$this->assertValueEquals(1, $match);
 	}
 
 }

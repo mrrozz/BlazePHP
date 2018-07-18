@@ -15,24 +15,23 @@
  */
 namespace BlazePHP;
 
-
 /**
- * Controller
+ * ControllerAPI
  *
  * @author    Matt Roszyk <me@mattroszyk.com>
  * @package   Blaze.Core
  *
  */
-abstract class Controller extends Struct
+abstract class ControllerAPI extends Struct
 {
 	public function before()
 	{
-		return;
+		return null;
 	}
 
 	public function after()
 	{
-		return;
+		return null;
 	}
 
 	public function notfound()

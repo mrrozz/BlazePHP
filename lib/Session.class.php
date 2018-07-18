@@ -38,7 +38,9 @@ class Session extends Struct
 
 	public function __construct()
 	{
-		switch(G::$env->sessionType) {
+		$type = (isset(G::$env->sessionType)) ? G::$env->sessionType : null;
+
+		switch($type) {
 
 			default;
 				$this->session = new Session\LocalPHP();

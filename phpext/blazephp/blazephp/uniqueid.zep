@@ -21,7 +21,7 @@ class UniqueId
 	{
 		var lock, thisSecond, id;
 
-		let thisSecond   = date("YmdHis") . microtime(true);
+		let thisSecond   = date("YmdHis") . microtime();
 		let lock         = new Lock("blaze_session_lock-" . thisSecond);
 		let id           = prefix . uniqid(1, true) . suffix;
 		let lock         = null;

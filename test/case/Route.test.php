@@ -18,7 +18,9 @@ use \BlazePHP\Globals as G;
 // use \BlazePHP\Route   as R;
 use \BlazePHP\Request;
 use \BlazePHP\Struct;
+use \BlazePHP\Debug as D;
 use BlazeTest\TestCase;
+
 
 $_REQUEST['__requested_path'] = 'myController/myAction/id:202/list:34/order:asc';
 G::$request = new Request();
@@ -70,15 +72,25 @@ final class RouteTest extends TestCase
 
 	public function testTranslate()
 	{
-		$_REQUEST['__requested_path'] = 'myAlias/202';
+		$_REQUEST['__requested_path'] = 'myAlias/202/234';
 		G::$request = new Request();
 		$route      = new Route();
-
 		$this->assertTrue('mycontroller' === $route->getController());
 		$this->assertTrue('myaction' === $route->getAction());
 		$parameters = $route->getParameters();
 		$this->assertArray($parameters);
 		$this->assertArrayNotEmpty($parameters);
 		$this->assertTrue((integer)$parameters['id'] === 202);
+		$this->assertTrue((integer)$parameters['form'] === 234);
+
+		$_REQUEST['__requested_path'] = 'myAlias/203';
+		G::$request = new Request();
+		$route      = new Route();
+		$this->assertTrue('mycontroller' === $route->getController());
+		$this->assertTrue('myaction' === $route->getAction());
+		$parameters = $route->getParameters();
+		$this->assertArray($parameters);
+		$this->assertArrayNotEmpty($parameters);
+		$this->assertTrue((integer)$parameters['id'] === 203);
 	}
 }

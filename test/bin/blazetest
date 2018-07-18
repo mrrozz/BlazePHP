@@ -17,6 +17,7 @@
 namespace BlazePHP;
 use \BlazePHP\Globals as G;
 use \BlazePHP\Message as M;
+use \BlazePHP\Debug   as D;
 use \BlazePHP\CLI;
 use \BlazePHP\Struct;
 require(dirname(dirname(__DIR__)).'/init/BlazeTest.init.php');
@@ -51,6 +52,15 @@ $o->default     = null;
 $o->description = 'Filter the test cases by keywords, CSV.';
 G::$cli->addOption($o);
 
+// CLI Option - Filter the test cases to be omitted, CSV
+$o              = new CLI\Option();
+$o->long        = 'omit-csv';
+$o->short       = 'O';
+$o->required    = false;
+$o->default     = null;
+$o->description = 'Filter the test cases to be omitted, CSV';
+G::$cli->addOption($o);
+
 
 // Initilize the CLI
 initCLI::parse(G::$cli);
@@ -63,6 +73,7 @@ class O extends Struct
 	public static $testDir;
 	public static $dieOnError;
 	public static $filterCSV;
+	public static $omitCSV;
 
 	// Script globals
 	public static $testCases;
@@ -71,6 +82,7 @@ class O extends Struct
 O::$testDir    = G::$cli->testDir;
 O::$dieOnError = G::$cli->dieOnError;
 O::$filterCSV  = G::$cli->filterCsv;
+O::$omitCSV    = G::$cli->omitCsv;
 
 O::$testCases  = array();
 
@@ -92,7 +104,8 @@ else if(!is_dir(O::$testDir)) {
 
 try {
 	// Filter files that end with *Test.php firstly
-	$filters = array('/\.test\.php$/');
+	$filters     = array('/\.test\.php$/');
+	$omitFilters = array();
 
 	// Consider the filter CSV if it is provided
 	if(O::$filterCSV !== null) {
@@ -102,11 +115,24 @@ try {
 		}
 	}
 
+	// Consider the omitted filter CSV if it is provided
+	if(O::$omitCSV !== null) {
+		$omitCSVRaw = explode(',', O::$omitCSV);
+		foreach($omitCSVRaw as $omitFilter) {
+			$omitFilters[] = '/'.$omitFilter.'/';
+		}
+	}
+
 	$dh = opendir(O::$testDir);
 	while(false !== ($file = readdir($dh))) {
 		$addFile = true;
 		foreach($filters as $filter) {
 			if(!preg_match($filter, $file)) {
+				$addFile = false;
+			}
+		}
+		foreach($omitFilters as $filter) {
+			if(preg_match($filter, $file)) {
 				$addFile = false;
 			}
 		}
@@ -192,7 +218,7 @@ foreach(O::$testCases as $caseFile) {
 		M::send($message, M::LEVEL_1, M::ADD_NEW_LINE);
 	}
 	catch(\Exception $e) {
-		printre($e->getMessage());
+		D::printre($e->getMessage());
 		// echo "\n".'Error: The test case class ['.$class.'] was not loaded from file ['.$caseFile.'] due to the following reason(s):'."\n".$e->getMessage()."\n\n";
 		exit;
 	}
