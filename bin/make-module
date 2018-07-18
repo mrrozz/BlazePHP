@@ -39,6 +39,15 @@ $o->required    = true;
 $o->description = 'The name of the module to create.  The name must match the regex pattern /^[a-z][a-z_0-9]*$/ in order to be accepted.';
 G::$cli->addOption($o);
 
+// CLI Option - Domain configuration name (i.e. default config file name override)
+$o              = new CLI\Option();
+$o->long        = 'config-domain-name';
+$o->short       = 'C';
+$o->required    = false;
+$o->default     = 'default';
+$o->description = 'Domain configuration name (i.e. default config file name override)';
+G::$cli->addOption($o);
+
 // Initilize the CLI
 initCLI::parse(G::$cli);
 
@@ -47,6 +56,7 @@ class O extends Struct
 	public static $moduleType;
 	public static $moduleName;
 	public static $namespace;
+	public static $configDomainName;
 
 	public static $layouts;
 	public static $license;
@@ -60,6 +70,8 @@ foreach($parts as $part) {
 }
 O::$namespace = implode('_', $partsFormatted);
 unset($parts, $partsFormatted);
+
+O::$configDomainName = preg_replace('/[^a-z0-9]/', '', G::$cli->configDomainName);
 
 O::$layouts = array(
 	 'shared' => array(
@@ -88,6 +100,7 @@ O::$layouts = array(
 		,'controller'
 		,'view'
 		,'view-element'
+		,'view-layout'
 	)
 	,'composer' => array(
 		 'vendor'
@@ -203,7 +216,7 @@ foreach(O::$layouts[O::$moduleType] as $dir) {
 			$config[] = 'G::$route = new Route();';
 		}
 
-		$confFh = fopen($moduleLoc.'/conf/default.conf.php', 'a');
+		$confFh = fopen($moduleLoc.'/conf/'.O::$configDomainName.'.conf.php', 'a');
 		fwrite($confFh, implode("\n", $config));
 		fclose($confFh);
 
@@ -257,6 +270,15 @@ foreach(O::$layouts[O::$moduleType] as $dir) {
 
 		M::send('SUCCESS', M::LEVEL_0, M::ADD_NEW_LINE, 'green');
 
+	}
+	else if($dir === 'view-layout') {
+		M::send('        Writing view-layout/default.layout.php: ', M::LEVEL_0, M::NO_NEW_LINE);
+
+		$layoutFh = fopen($moduleLoc.'/view-layout/default.layout.php', 'a');
+		fwrite($layoutFh, 'Welcome to the default layout!');
+		fclose($layoutFh);
+
+		M::send('SUCCESS', M::LEVEL_0, M::ADD_NEW_LINE, 'green');
 	}
 	else {
 		touch($moduleLoc.'/'.$dir.'/empty');
