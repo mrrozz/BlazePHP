@@ -314,4 +314,4 @@ else {
 		}
 	}
 }
-class_alias('\BlazePHP\Debug', 'D');
+// class_alias('\BlazePHP\Debug', 'D');
