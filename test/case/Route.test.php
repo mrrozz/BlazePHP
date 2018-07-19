@@ -32,8 +32,10 @@ class Route extends \BlazePHP\Route
 		// %i - the argument is treated as an unsigned integer
 		// %s - the argument is treated as and presented as a string matching the following pattern '[a-zA-Z0-9_\-\.]'.
 
-		$this->alias('/mycontroller/myaction/id:$i1', '/myAlias/%i');
+		$this->alias('/mycontroller/myaction/id:$i1',          '/myAlias/%i');
 		$this->alias('/mycontroller/myaction/id:$i1/form:$i2', '/myAlias/%i/%i');
+		$this->alias('/blog/view/article:$s1/mode:$s2',        '/blog/%s/%s');
+		$this->alias('/blog/view/article:$s1',                 '/blog/%s');
 
 		parent::__construct();
 	}
@@ -70,7 +72,7 @@ final class RouteTest extends TestCase
 		$this->assertTrue($parameters['order'] === 'asc');
 	}
 
-	public function testTranslate()
+	public function testTranslateIntegers()
 	{
 		$_REQUEST['__requested_path'] = 'myAlias/202/234';
 		G::$request = new Request();
@@ -92,5 +94,20 @@ final class RouteTest extends TestCase
 		$this->assertArray($parameters);
 		$this->assertArrayNotEmpty($parameters);
 		$this->assertTrue((integer)$parameters['id'] === 203);
+	}
+
+
+	public function testTranslateStrings()
+	{
+		$_REQUEST['__requested_path'] = 'blog/test-article-name/edit/admin/quick';
+		G::$request = new Request();
+		$route      = new Route();
+		$this->assertValueEquals('blog', $route->getController());
+		$this->assertValueEquals('view', $route->getAction());
+
+		$parameters = $route->getParameters();
+		$this->assertValueEquals($parameters['article'], 'test-article-name');
+		$this->assertValueEquals($parameters['mode'], 'admin');
+		$this->assertValueEquals($parameters['quick'], true);
 	}
 }

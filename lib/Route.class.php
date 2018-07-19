@@ -26,6 +26,7 @@ use BlazePHP\Debug   as D;
  */
 class Route extends Struct
 {
+	protected $pathOriginal = null;
 	protected $path = null;
 	protected $aliases;
 	protected $controller;
@@ -34,7 +35,8 @@ class Route extends Struct
 
 	public function __construct()
 	{
-		$this->path = $this->translate(G::$request->getRequestedPath());
+		$this->pathOriginal = G::$request->getRequestedPath();
+		$this->path = $this->translate($this->pathOriginal);
 		$this->parse();
 	}
 
@@ -55,40 +57,103 @@ class Route extends Struct
 
 	public function translate($path)
 	{
-		// %i - the argument is treated as an unsigned integer with no variable assignment
-		$parts           = explode('/', preg_replace('/^\/*/', '', $path));
-		$test            = '';
-		$realPath        = null;
-		$parameters      = '';
-		$parameterValues = array();
-		$found           = false;
-
-		foreach($parts as $part) {
-			$partCheck = preg_replace('/^[0-9]+$/', '%i', $part);
-			$test     .= '/'.$partCheck;
-			if(isset($this->aliases[$test])) {
-				$realPath        = $this->aliases[$test];
-				$found          = true;
-				$parameters      = '';
-				$parameterValues[] = $part;
+		$search = array(
+			 '/^\%i$/'
+			,'/^\%s$/'
+		);
+		$replace = array(
+			 '[0-9]+'
+			,'[a-zA-Z0-9\-_]+'
+		);
+		$regexAliases = array();
+		foreach($this->aliases as $alias => $route) {
+			$parts      = explode('/', $alias);
+			$regexParts = array();
+			foreach($parts as $part) {
+				if(empty($part)) {
+					continue;
+				}
+				$regexPart = preg_replace($search, $replace, $part, -1, $found);
+				if($found <= 0) {
+					$regexPart = preg_replace('/\-/', '\\-', $regexPart);
+				}
+				$regexParts[] = '/^'.$regexPart.'$/';
 			}
-			elseif(!is_null($realPath)) {
-				$parameterValues = array();
-				$found = false;
-			}
-		}
-		$v = count($parameterValues);
-		for($i=1; $i<=$v; $i++) {
-			$realPath = preg_replace('/\$i'.$i.'/', $parameterValues[$i-1], $realPath);
+			$regexAliases[$alias] = array('regex' => $regexParts, 'route' => $route);
 		}
 
-		if($found) {
-			return $realPath.$parameters;
+		$pathParts = explode('/', $path);
+
+		$matches = array();
+		foreach($regexAliases as $alias => $conf) {
+
+			$match = true;
+			$i = 0;
+			foreach($conf['regex'] as $pattern) {
+				if(!isset($pathParts[$i])) {
+					$match = false;
+					break;
+				}
+				if(!preg_match($pattern, $pathParts[$i])) {
+					$match = false;
+				}
+
+				$i++;
+
+				if($match === false) {
+					break;
+				}
+			}
+			if($match === true) {
+				$matches[$i] = $alias;
+			}
 		}
-		else {
+		if(count($matches) <= 0) {
 			return $path;
 		}
+		ksort($matches);
+		$aliasMatch = array_pop($matches);
+
+		$pathParts = explode('/', preg_replace('/^\//', '', $path));
+		$aliasParts = explode('/', preg_replace('/^\//', '', $aliasMatch));
+
+		$c = count($aliasParts);
+		for($i=0; $i<$c; $i++) {
+
+			$pathPart  = array_shift($pathParts);
+			$aliasPart = array_shift($aliasParts);
+
+			if($pathPart == $aliasPart) {
+				continue;
+			}
+			$type = 'integer';
+			$partCheck = preg_replace('/^[0-9]+$/', '%i', $pathPart, -1, $found);
+			if($found <= 0) {
+				$type = 'string';
+				$partCheck = preg_replace('/^[a-z0-9A-Z\-_]+$/', '%s', $pathPart, -1, $found);
+			}
+
+			$parameterValues[$type][] = $pathPart;
+		}
+
+		$realPath = $this->aliases[$aliasMatch];
+
+		$v = (isset($parameterValues['integer'])) ? count($parameterValues['integer']) : 0;
+		for($i=1; $i<=$v; $i++) {
+			$realPath = preg_replace('/\$i'.$i.'/', $parameterValues['integer'][$i-1], $realPath);
+		}
+		$v = (isset($parameterValues['string'])) ? count($parameterValues['string']) : 0;
+		for($i=1; $i<=$v; $i++) {
+			$realPath = preg_replace('/\$s'.$i.'/', $parameterValues['string'][$i-1], $realPath);
+		}
+
+		if(count($pathParts) > 0) {
+			$realPath .= '/'.implode('/', $pathParts);
+		}
+
+		return $realPath;
 	}
+
 
 	public function parse()
 	{
