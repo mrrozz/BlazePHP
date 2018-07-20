@@ -96,6 +96,34 @@ final class ControllerTest extends TestCase
 		$this->assertFileExists($customLayoutLoc);
 	}
 
+	public function testRenderReturn()
+	{
+		$controller = new TestController();
+		$controller->before();
+		$controller->after();
+
+		ob_start();
+		$content  = $controller->renderReturn();
+		$rendered = ob_get_contents();
+
+		$this->assertValueEquals('DEFAULT LAYOUT', trim($content));
+		$this->assertEmpty($rendered);
+	}
+
+	public function testRender()
+	{
+		$controller = new TestController();
+		$controller->before();
+		$controller->after();
+
+		ob_start();
+		$content  = $controller->render();
+		$rendered = ob_get_contents();
+
+		$this->assertValueEquals('DEFAULT LAYOUT', trim($rendered));
+		$this->assertTrue($content);
+	}
+
 	public function testRenderCustomLayout()
 	{
 		$controller = new TestController();
@@ -103,8 +131,9 @@ final class ControllerTest extends TestCase
 		$controller->validateLayout();
 		$controller->after();
 
-		$content = $controller->render();
+		$content = $controller->renderReturn();
 
 		$this->assertValueEquals('CUSTOM LAYOUT', trim($content));
 	}
+
 }

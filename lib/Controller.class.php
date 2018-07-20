@@ -92,17 +92,30 @@ abstract class Controller extends ControllerAPI
 
 
 	/**
+	 * Renders the output and returns the value
+	 */
+	public function renderReturn()
+	{
+		return $this->processRender(true);
+	}
+
+
+	/**
+	 * Renders the output to the screen
+	 */
+	public function render()
+	{
+		return $this->processRender(false);
+	}
+
+
+	/**
 	 * Renders the output using a layout if one has been set
 	 */
-	public function render($layoutOverride=null, $returnContent=true)
+	private function processRender($returnContent)
 	{
-		if(!is_null($layoutOverride) && !file_exists(MODULE_ROOT.'/view-layout/'.$layoutOverride.'.layout.php')) {
-			throw new \Exception( implode(' ', array(
-				 __CLASS__.'::'.__FUNCTION__
-				,' - The override layout file ['.$layoutOverride.'] specified does not exist.'
-			)));
-		}
-		elseif(!file_exists(ControllerValues::$layout)) {
+
+		if(!file_exists(ControllerValues::$layout)) {
 			throw new \Exception( implode(' ', array(
 				 __CLASS__.'::'.__FUNCTION__
 				,' - The layout file ['.ControllerValues::$layout.'] does not exist'
@@ -117,17 +130,14 @@ abstract class Controller extends ControllerAPI
 			ob_start();
 		}
 
-		if($layoutOverride === null) {
-			include(ControllerValues::$layout);
-		}
-		else {
-			include(MODULE_ROOT.'/view-layout/'.$layoutOverride.'.layout.php');
-		}
+		include(ControllerValues::$layout);
 
 		if($returnContent === true) {
 			$content = ob_get_contents();
 			ob_end_clean();
 			return $content;
 		}
+
+		return true;
 	}
 }
