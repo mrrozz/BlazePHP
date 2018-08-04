@@ -193,6 +193,16 @@ class PostgresObject extends DatabaseObject
 
 
 
+	/**
+	 * Returns the value of __isNew
+	 */
+	public function isNew()
+	{
+		return $this->__isNew;
+	}
+
+
+
 
 
 	/**
@@ -225,7 +235,7 @@ class PostgresObject extends DatabaseObject
 
 			$verdict = true;
 
-			if(empty($this->id)) {
+			if(!empty($this->id)) {
 				$this->__isNew = false;
 			}
 		}
@@ -744,6 +754,23 @@ class PostgresObject extends DatabaseObject
 		}
 		$this->__attributeValues[$attribute] = $value;
 
+		return true;
+	}
+
+
+
+
+	/**
+	 * Magical __isset - Allows the use of emtpy() to check for the value of a magic method retrieval
+	 *
+	 * @param $attribute - Attribute name to retrieve
+	 * @return boolean - True if the attribute is set, false otherwise
+	 */
+	public function __isset($attribute)
+	{
+		if (!isset($this->__attributeList[$attribute])) {
+			return false;
+		}
 		return true;
 	}
 
