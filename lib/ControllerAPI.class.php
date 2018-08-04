@@ -14,7 +14,7 @@
  *
  */
 namespace BlazePHP;
-
+use \BlazePHP\Globals as G;
 /**
  * ControllerAPI
  *
@@ -40,10 +40,17 @@ abstract class ControllerAPI extends Struct
 		die('Request is invalid');
 	}
 
+	public function notAuthorized()
+	{
+		header("HTTP/1.0 401 Unauthorized");
+		die('Request is not authorized.');
+	}
+
 	protected function redirect($destination)
 	{
 		header('HTTP/1.1 302 Found');
 		header('Location: ' . $destination);
+		exit;
 	}
 
 	public function renderJSON($output)
@@ -57,5 +64,15 @@ abstract class ControllerAPI extends Struct
 	{
 		header("HTTP/1.0 405 Method Not Allowed");
 		die('Method Not Allowed');
+	}
+
+	public function getRequestedPath()
+	{
+		return G::$request->getRequestedPath();
+	}
+
+	public function getParameters()
+	{
+		return G::$route->getParameters();
 	}
 }

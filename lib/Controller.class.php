@@ -15,17 +15,25 @@
  */
 namespace BlazePHP;
 use BlazePHP\ControllerAPI;
-
+use BlazePHP\Debug as D;
 /**
  * ControllerValues - Static values that are used to hold the values set within a controller.
  *                    This avoids variable name collision.
  */
 class ControllerValues extends Struct
 {
-	public static $variables     = array();
-	public static $layout        = 'default';
-	public static $key;
-	public static $value;
+	public static $variables = array();
+	public static $layout    = 'default';
+	public static $key       = null;
+	public static $value     = null;
+
+	public static function reset()
+	{
+		self::$variables = array();
+		self::$layout    = 'default';
+		self::$key       = null;
+		self::$value     = null;
+	}
 }
 
 /**
@@ -39,7 +47,7 @@ abstract class Controller extends ControllerAPI
 {
 	public function __construct()
 	{
-		$this->setLayout('default');
+		ControllerValues::reset();
 	}
 
 	/**
@@ -87,32 +95,17 @@ abstract class Controller extends ControllerAPI
 			)));
 		}
 
-		ControllerValues::$layout = MODULE_ROOT.'/view-layout/'.$layout.'.layout.php';
+		ControllerValues::$layout = $layout;
 	}
 
 
-	/**
-	 * Renders the output and returns the value
-	 */
-	public function renderReturn()
-	{
-		return $this->processRender(true);
-	}
 
-
-	/**
-	 * Renders the output to the screen
-	 */
-	public function render()
-	{
-		return $this->processRender(false);
-	}
 
 
 	/**
 	 * Renders the output using a layout if one has been set
 	 */
-	private function processRender($returnContent)
+	private function processLayout($returnContent)
 	{
 
 		if(!file_exists(ControllerValues::$layout)) {
@@ -131,6 +124,81 @@ abstract class Controller extends ControllerAPI
 		}
 
 		include(ControllerValues::$layout);
+
+		if($returnContent === true) {
+			$content = ob_get_contents();
+			ob_end_clean();
+			return $content;
+		}
+
+		return true;
+	}
+
+
+
+
+	/**
+	 * Renders the output and returns the value
+	 */
+	public function renderReturn()
+	{
+		// D::printre(ControllerValues::$layout);
+		return $this->processFile('view-layout', ControllerValues::$layout, true);
+	}
+
+	/**
+	 * Renders the output to the screen
+	 */
+	public function render()
+	{
+		return $this->processFile('view-layout', ControllerValues::$layout, false);
+	}
+
+	public function renderView($file) {
+		return $this->processFile('view', $file, false);
+	}
+
+	public function renderViewReturn($file) {
+		return $this->processFile('view', $file, true);
+	}
+
+	private function processFile($type, $file, $returnContent)
+	{
+		switch($type) {
+			case 'view':
+				$fileDir   = 'view';
+				$extention = 'view';
+				break;
+
+			case 'view-layout':
+				$fileDir   = 'view-layout';
+				$extention = 'layout';
+				break;
+
+			case 'view-element':
+				$fileDir   = 'view-element';
+				$extention = 'element';
+				break;
+		}
+		$fileLoc = MODULE_ROOT.'/'.$fileDir.'/'.$file.'.'.$extention.'.php';
+
+		if(!file_exists($fileLoc)) {
+			throw new \Exception( implode(' ', array(
+				 __CLASS__.'::'.__FUNCTION__
+				,' - The file ['.$fileLoc.'] was not found.'
+			)));
+		}
+
+
+		foreach(ControllerValues::$variables as ControllerValues::$key => ControllerValues::$value) {
+			${ControllerValues::$key} = ControllerValues::$value;
+		}
+
+		if($returnContent === true) {
+			ob_start();
+		}
+
+		include($fileLoc);
 
 		if($returnContent === true) {
 			$content = ob_get_contents();
