@@ -22,7 +22,7 @@ class Lock extends Struct
 
 	public function __construct(procName)
 	{
-		let this->lockFileLocation = ABS_VAR . "/lock/" . preg_replace("/[^a-zA-Z0-9_]/", "", procName) . ".lock";
+		let this->lockFileLocation = ABS_VAR . "/lock/" . preg_replace("/[^a-zA-Z0-9\-_]/", "", procName) . ".lock";
 		// let this->lockFileLocation = "/tmp/" . preg_replace("/[^a-zA-Z0-9_]/", "_", procName) . ".sock";
 
 		if(file_exists(this->lockFileLocation)) {
