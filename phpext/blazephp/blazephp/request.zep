@@ -23,7 +23,7 @@ namespace BlazePHP;
  */
 class Request
 {
-	protected parameters = [];
+	protected parameters = ["__requested_path": null];
 
 	public function __construct()
 	{
@@ -40,6 +40,14 @@ class Request
 		return (isset(this->parameters[name])) ? this->parameters[name] : null;
 	}
 
+	public function __isset(name)
+	{
+		if (!isset(this->parameters[name])) {
+			return false;
+		}
+		return true;
+	}
+
 
 	public function getMethod()
 	{
@@ -49,7 +57,7 @@ class Request
 
 	public function getRequestedPath()
 	{
-		return this->parameters["__requested_path"];
+		return "/" . this->parameters["__requested_path"];
 	}
 
 
