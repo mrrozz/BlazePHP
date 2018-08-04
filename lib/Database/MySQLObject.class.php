@@ -104,6 +104,11 @@ class MySQLObject extends DatabaseObject
 			else {
 				$this->__error = true;
 				$this->__errorMessage = 'No record found by the given ID ('.$id.')';
+
+				throw new \Exception( implode(' ', array(
+					 __CLASS__.'::'.__FUNCTION__
+					,' - '.$this->__errorMessage
+				)));
 			}
 
 			// Handle any of the custom unpacking
@@ -192,6 +197,16 @@ class MySQLObject extends DatabaseObject
 
 
 
+	/**
+	 * Returns the value of __isNew
+	 */
+	public function isNew()
+	{
+		return $this->__isNew;
+	}
+
+
+
 
 
 	/**
@@ -224,7 +239,7 @@ class MySQLObject extends DatabaseObject
 
 			$verdict = true;
 
-			if(empty($this->id)) {
+			if(!empty($this->id)) {
 				$this->__isNew = false;
 			}
 		}
@@ -669,6 +684,20 @@ class MySQLObject extends DatabaseObject
 	}
 
 
+
+	/**
+	 * Magical __isset - Allows the use of emtpy() to check for the value of a magic method retrieval
+	 *
+	 * @param $attribute - Attribute name to retrieve
+	 * @return boolean - True if the attribute is set, false otherwise
+	 */
+	public function __isset($attribute)
+	{
+		if (!isset($this->__attributeList[$attribute])) {
+			return false;
+		}
+		return true;
+	}
 
 
 
