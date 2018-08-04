@@ -67,6 +67,17 @@ while($module = readdir($moduleListHandle)) {
 		}
 	}
 
+
+	$libPath = realpath(dirname(__DIR__).'/module/'.$module.'/lib');
+	if(file_exists($libPath) && is_dir($libPath)) {
+		$directory   = new \RecursiveDirectoryIterator($libPath);
+		$iterator    = new \RecursiveIteratorIterator($directory);
+		$phpFiles    = new \RegexIterator($iterator, '/^.+\.class\.php$/i', \RecursiveRegexIterator::GET_MATCH);
+		foreach($phpFiles as $name => $nullMe) {
+			$fileList[] = $name;
+		}
+	}
+
 	M::send(' SUCCESS', M::LEVEL_1, M::ADD_NEW_LINE, 'green');
 }
 
@@ -75,16 +86,16 @@ M::send('MSG: Writing '.count($fileList).' map(s) to file [{BlazePHP_ROOT}/modul
 
 foreach($fileList as $name){
 	// echo "$name\n";
-	$parts = explode('/module/', $name);
+	$parts        = explode('/module/', $name);
 	$fileLocation = $parts[1];
-	$parts = explode('/', $parts[1]);
-	$moduleRaw   = array_shift($parts);
-	$moduleParts = explode('-', $moduleRaw);
-	$module      = ucfirst($moduleParts[1]);
-	array_shift($parts); // purge the 'manager' directory
-	$classRaw   = array_pop($parts); // grab the class file off the end of the array
-	$classParts = explode('.class.php', $classRaw);
-	$class      = $classParts[0];
+	$parts        = explode('/', $parts[1]);
+	$moduleRaw    = array_shift($parts);
+	$moduleParts  = explode('-', $moduleRaw);
+	$module       = ucfirst($moduleParts[1]);
+	$dirName      = array_shift($parts); // purge the 'manager' directory
+	$classRaw     = array_pop($parts); // grab the class file off the end of the array
+	$classParts   = explode('.class.php', $classRaw);
+	$class        = $classParts[0];
 
 	$moduleNamespacePartsRaw = explode('_', $module);
 	$moduleNamespaceParts    = array();
@@ -92,8 +103,12 @@ foreach($fileList as $name){
 		$moduleNamespaceParts[] = ucfirst($part);
 	}
 	$moduleNamespace = implode($moduleNamespaceParts);
+	// print_r(array($parts, $dirName));
 	if(count($parts) > 0) {
 		$namespacePath = $moduleNamespace.'\\'.implode('\\', $parts).'\\'.$class;
+	}
+	elseif(!in_array($dirName, array('model', 'manager'))) {
+		$namespacePath = $moduleNamespace.'\\'.ucfirst(strtolower($dirName)).'\\'.$class;
 	}
 	else{
 		$namespacePath = $moduleNamespace.'\\'.$class;
