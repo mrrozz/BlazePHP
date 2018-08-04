@@ -20,15 +20,17 @@ use BlazePHP\Struct;
 
 
 /**
- * MySQL Object class handles all entity relations with a specific table
+ * Database Manager List Options object class handles all entity relations with a specific table
  *
  * @author    Matt Roszyk <me@mattroszyk.com>
  * @package   Blaze.Core
  *
  */
-define('BLAZE_OBJECT_ID_GUID', 'GUID');
-define('BLAZE_OBJECT_ID_AUTO', 'AUTO');
-abstract class DatabaseObject
+class ManagerListOptions extends Struct
 {
-
+	public $start      = 0;
+	public $count      = null; // Return all records
+	public $fields     = '*';
+	public $conditions = null;
+	public $dumpSQL    = false;
 }
