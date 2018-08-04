@@ -129,7 +129,7 @@ class MySQLObjectManager
 			$sql[] = (string)(integer)$start.', '.(string)$count;
 		}
 		if($dumpSQL === true) {
-			printre(implode("\n", $sql));
+			\BlazePHP\Debug::printre(implode("\n", $sql));
 		}
 
 		try {
