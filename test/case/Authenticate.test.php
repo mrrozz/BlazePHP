@@ -61,6 +61,17 @@ final class AuthenticateTest extends TestCase
 		$this->assertTrue($success);
 	}
 
+	public function testFileAuthLogin()
+	{
+		$auth    = \BlazePHP\Authenticate\AuthenticateBoss::build('File');
+		$fileLoc = FILE_AUTH_LOC;
+		$success = $auth->setFileLoc($fileLoc);
+
+		$success = $auth->login('testUser1', 'testPass');
+
+		$this->assertTrue($success);
+	}
+
 
 	public function testFileAuthDeleteUser()
 	{

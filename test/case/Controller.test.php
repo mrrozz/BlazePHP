@@ -81,20 +81,20 @@ final class ControllerTest extends TestCase
 		$this->assertValueEquals('a', $value);
 	}
 
-	public function testCustomLayout()
-	{
-		$defaultLayoutLoc = \BlazePHP\ControllerValues::$layout;
+	// public function testCustomLayout()
+	// {
+	// 	$defaultLayoutLoc = \BlazePHP\ControllerValues::$layout;
 
-		$controller = new TestController();
-		$controller->before();
-		$controller->validateLayout();
-		$controller->after();
+	// 	$controller = new TestController();
+	// 	$controller->before();
+	// 	$controller->validateLayout();
+	// 	$controller->after();
 
-		$customLayoutLoc = \BlazePHP\ControllerValues::$layout;
+	// 	$customLayoutLoc = \BlazePHP\ControllerValues::$layout;
 
-		$this->assertNotEmpty($customLayoutLoc);
-		$this->assertFileExists($customLayoutLoc);
-	}
+	// 	$this->assertNotEmpty($customLayoutLoc);
+	// 	$this->assertFileExists($customLayoutLoc);
+	// }
 
 	public function testRenderReturn()
 	{
@@ -116,9 +116,11 @@ final class ControllerTest extends TestCase
 		$controller->before();
 		$controller->after();
 
+		ob_implicit_flush(false);
 		ob_start();
 		$content  = $controller->render();
 		$rendered = ob_get_contents();
+		ob_end_clean();
 
 		$this->assertValueEquals('DEFAULT LAYOUT', trim($rendered));
 		$this->assertTrue($content);
@@ -135,5 +137,17 @@ final class ControllerTest extends TestCase
 
 		$this->assertValueEquals('CUSTOM LAYOUT', trim($content));
 	}
+
+	public function testRenderWithView()
+	{
+		$controller = new TestController();
+		$controller->setLayout('test-view');
+		$controller->name = 'test-view';
+		$controller->viewTest = $controller->renderViewReturn('test');
+		$rendered = $controller->renderReturn();
+
+		$this->assertValueEquals('TEST LAYOUT -> THIS IS THE VIEW (test-view) CONTENT!', trim($rendered));
+	}
+
 
 }

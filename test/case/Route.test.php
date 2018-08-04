@@ -32,10 +32,10 @@ class Route extends \BlazePHP\Route
 		// %i - the argument is treated as an unsigned integer
 		// %s - the argument is treated as and presented as a string matching the following pattern '[a-zA-Z0-9_\-\.]'.
 
-		$this->alias('/mycontroller/myaction/id:$i1',          '/myAlias/%i');
-		$this->alias('/mycontroller/myaction/id:$i1/form:$i2', '/myAlias/%i/%i');
-		$this->alias('/blog/view/article:$s1/mode:$s2',        '/blog/%s/%s');
-		$this->alias('/blog/view/article:$s1',                 '/blog/%s');
+		// $this->alias('/mycontroller/myaction/id:$i1',          '/myAlias/%i');
+		// $this->alias('/mycontroller/myaction/id:$i1/form:$i2', '/myAlias/%i/%i');
+		// $this->alias('/blog/view/article:$s1/mode:$s2',        '/blog/%s/%s');
+		// $this->alias('/blog/view/article:$s1',                 '/blog/%s');
 
 		parent::__construct();
 	}
@@ -44,6 +44,14 @@ class Route extends \BlazePHP\Route
 
 final class RouteTest extends TestCase
 {
+	// public function testXXX()
+	// {
+	// 	$_REQUEST['__requested_path'] = 'manage/setIcon/gallery/B/business_card_holder_7_Edit_jpg.jpeg';
+	// 	G::$request = new Request();
+	// 	$route      = new Route();
+	// 	D::printre($route);
+	// }
+
 	public function testInstanceCreates()
 	{
 		$this->assertInstanceOf(Route::class, new Route());
@@ -104,10 +112,16 @@ final class RouteTest extends TestCase
 		$route      = new Route();
 		$this->assertValueEquals('blog', $route->getController());
 		$this->assertValueEquals('view', $route->getAction());
-
 		$parameters = $route->getParameters();
+
 		$this->assertValueEquals($parameters['article'], 'test-article-name');
-		$this->assertValueEquals($parameters['mode'], 'admin');
+		$this->assertValueEquals($parameters['mode'], 'edit');
+		$this->assertValueEquals($parameters['admin'], true);
 		$this->assertValueEquals($parameters['quick'], true);
 	}
+
+
+
+
+
 }

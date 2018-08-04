@@ -16,10 +16,19 @@
 namespace BlazeTest;
 use BlazePHP\Lock;
 use BlazeTest\TestCase;
+use BlazePHP\Debug as D;
 
 
 final class LockTest extends TestCase
 {
+	public function testLock()
+	{
+		$lock = new Lock('test');
+		D::printr($lock);
+
+		$lock2 = new Lock('test');
+	}
+
 	public function testInstanceCreates()
 	{
 		$lock = new Lock(__CLASS__);
