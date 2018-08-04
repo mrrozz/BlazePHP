@@ -28,7 +28,7 @@ class Route extends Struct
 {
 	protected $pathOriginal = null;
 	protected $path = null;
-	protected $aliases;
+	protected $aliases = array();
 	protected $controller;
 	protected $action;
 	protected $parameters = array();
@@ -63,7 +63,7 @@ class Route extends Struct
 		);
 		$replace = array(
 			 '[0-9]+'
-			,'[a-zA-Z0-9\-_]+'
+			,'[a-zA-Z0-9\-\._]+'
 		);
 		$regexAliases = array();
 		foreach($this->aliases as $alias => $route) {
@@ -82,6 +82,7 @@ class Route extends Struct
 			$regexAliases[$alias] = array('regex' => $regexParts, 'route' => $route);
 		}
 
+		$path = preg_replace('/^\//', '', $path);
 		$pathParts = explode('/', $path);
 
 		$matches = array();
@@ -175,14 +176,11 @@ class Route extends Struct
 			if(preg_match('/\:/', $part)) {
 				list($key, $value) = explode(':', $part);
 				$this->parameters[$key] = $value;
+				$key  = null;
 			}
-			else if(preg_match('/^[a-zA-Z_][a-zA-Z0-9\-]*$/', $part)) {
+			else if(preg_match('/^[a-zA-Z_][a-zA-Z0-9\-_]*$/', $part)) {
 				if(is_null($key)) {
 					$key = $part;
-				}
-				else {
-					$this->parameters[$key] = $part;
-					$key = null;
 				}
 			}
 			else {
@@ -190,6 +188,7 @@ class Route extends Struct
 			}
 			if(!is_null($key) && !isset($this->parameters[$key])) {
 				$this->parameters[$key] = true;
+				$key = null;
 			}
 		}
 	}
