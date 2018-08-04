@@ -40,6 +40,7 @@ class Globals extends Struct
 	public static $request;
 	public static $route;
 	public static $routeAlias;
+	public static $session;
 	public static $autoload = array(
 		'BlazePHP:lib'  // Map all BlazePHP namespace classes to the ABS_ROOT/lib directory
 	);

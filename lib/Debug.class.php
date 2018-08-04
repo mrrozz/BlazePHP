@@ -45,7 +45,7 @@ if (G::$debug === true) {
 		 */
 		public static function console($data, $showBacktrace = false, $port = 8000)
 		{
-			if ('ON' !== DEBUG_SWITCH) {
+			if (!G::$debug) {
 				return;
 			}
 			$dataType = gettype($data);

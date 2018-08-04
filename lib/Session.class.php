@@ -69,4 +69,9 @@ class Session extends Struct
 	{
 		return $this->session->URLToken();
 	}
+
+	public function save()
+	{
+		return $this->session->save();
+	}
 }
