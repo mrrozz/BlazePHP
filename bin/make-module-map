@@ -78,6 +78,16 @@ while($module = readdir($moduleListHandle)) {
 		}
 	}
 
+	$controllerPath = realpath(dirname(__DIR__).'/module/'.$module.'/controller');
+	if(file_exists($controllerPath) && is_dir($controllerPath)) {
+		$directory   = new \RecursiveDirectoryIterator($controllerPath);
+		$iterator    = new \RecursiveIteratorIterator($directory);
+		$phpFiles    = new \RegexIterator($iterator, '/^.+\.ctlr\.php$/i', \RecursiveRegexIterator::GET_MATCH);
+		foreach($phpFiles as $name => $nullMe) {
+			$fileList[] = $name;
+		}
+	}
+
 	M::send(' SUCCESS', M::LEVEL_1, M::ADD_NEW_LINE, 'green');
 }
 
@@ -94,8 +104,11 @@ foreach($fileList as $name){
 	$module       = ucfirst($moduleParts[1]);
 	$dirName      = array_shift($parts); // purge the 'manager' directory
 	$classRaw     = array_pop($parts); // grab the class file off the end of the array
-	$classParts   = explode('.class.php', $classRaw);
-	$class        = $classParts[0];
+	$class        = preg_replace('/\.(ctlr|class)\.php$/', '', $classRaw);
+	if(preg_match('/\.ctlr\.php$/', $classRaw)) {
+		$class .= 'CTLR';
+	}
+
 
 	$moduleNamespacePartsRaw = explode('_', $module);
 	$moduleNamespaceParts    = array();
@@ -107,7 +120,7 @@ foreach($fileList as $name){
 	if(count($parts) > 0) {
 		$namespacePath = $moduleNamespace.'\\'.implode('\\', $parts).'\\'.$class;
 	}
-	elseif(!in_array($dirName, array('model', 'manager'))) {
+	elseif(!in_array($dirName, array('controller', 'model', 'manager'))) {
 		$namespacePath = $moduleNamespace.'\\'.ucfirst(strtolower($dirName)).'\\'.$class;
 	}
 	else{
