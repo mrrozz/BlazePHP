@@ -368,6 +368,7 @@ $skipNotEmpties = array('time_created');
 foreach(O::$tables as $table) {
 
 	$attributes    = array();
+	$defaults      = array();
 	$primaryKeys   = array();
 	$notEmpties    = array(); // anything that's not null
 	$hasIDField    = false;
@@ -388,6 +389,7 @@ foreach(O::$tables as $table) {
 	M::send('    MSG: Processing table ['.$table.']', M::LEVEL_0, M::ADD_NEW_LINE);
 	foreach($results as $columnName => $columnInfo) {
 		$attributes[$columnName] = getBlazeType($columnInfo['type'], $table);
+		$defaults[$columnName]   = $columnInfo['default'];
 
 		// Validate that the field name meets the blaze naming convention
 		if(!preg_match('/^[a-z_][a-z0-9_]*$/', $columnName)) {
@@ -436,7 +438,7 @@ foreach(O::$tables as $table) {
 		$classNameParts[$key] = ucfirst($part);
 	}
 
-	buildClassFile($attributes, $primaryKeys, $notEmpties, implode('', $classNameParts), $table, $blazeIDType);
+	buildClassFile($attributes, $defaults, $primaryKeys, $notEmpties, implode('', $classNameParts), $table, $blazeIDType);
 }
 
 M::sendLineBreak(M::LEVEL_0);
@@ -447,7 +449,7 @@ passthru(__DIR__.'/make-module-map -v');
 
 
 
-function buildClassFile($attributes, $primaryKeys, $notEmpties, $className, $table, $blazeIDType)
+function buildClassFile($attributes, $defaults, $primaryKeys, $notEmpties, $className, $table, $blazeIDType)
 {
 	// $blazeLicense = array();
 	// $blazeLicense[] = '/**';
@@ -526,6 +528,33 @@ function buildClassFile($attributes, $primaryKeys, $notEmpties, $className, $tab
 	$blazeObject[] = "\t\t\t ".implode("\n\t\t\t".',', $attrs);
 	$blazeObject[] = '		);';
 	$blazeObject[] = '';
+
+
+// \BlazePHP\Debug::printre($defaults);
+	$blazeObject[] = '		$this->__attributeDefaults = Array(';
+
+	$attrs = array();
+	$maxLength = 0;
+	foreach($defaults as $name => $type) {
+		if(strlen($name) >  $maxLength) {
+			$maxLength = strlen($name);
+		}
+	}
+	foreach($defaults as $name => $valueRaw) {
+		if(empty($valueRaw) || in_array($name, array('id', 'time_created', 'time_modified'))) {
+			$value = 'null';
+		}
+		elseif(gettype($valueRaw) === 'string') {
+			$value = '\''.base64_encode($valueRaw).'\'';
+		}
+		$attrs[] = str_pad('\''.$name.'\'', ($maxLength+2)).' => '.$value;
+	}
+
+	$blazeObject[] = "\t\t\t ".implode("\n\t\t\t".',', $attrs);
+	$blazeObject[] = '		);';
+	$blazeObject[] = '';
+
+
 
 	if(count($notEmpties) > 0) {
 		$blazeObject[] = '		$this->__attributeValidation = array(';
@@ -645,7 +674,7 @@ function writeFile($className, $content, $location)
 {
 	$fullPath = $location.'/'.$className.'.class.php';
 	if(file_exists($fullPath) && !O::$forceOverwrite) {
-		M::send('ALERT: The file already exists [',$fullPath,']', M::LEVEL_0, M::ADD_NEW_LINE, 'yellow');
+		M::send('ALERT: The file already exists ['. $fullPath . ']', M::LEVEL_0, M::ADD_NEW_LINE, 'yellow');
 		$answer = null;
 		while($answer != 'Y') {
 			M::send('Overwrite this file? [Y/n]:', M::LEVEL_0, M::NO_NEW_LINE);
@@ -726,7 +755,6 @@ function getBlazeType($mysqlType, $table)
 		case 'tinyblob':
 		case 'mediumblob':
 		case 'date':
-		case 'datetime':
 		case 'time':
 		case 'year':
 		case 'character varying': // postgres

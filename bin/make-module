@@ -249,7 +249,7 @@ foreach(O::$layouts[O::$moduleType] as $dir) {
 		$controller = array();
 		$controller[] = '<?php';
 		$controller[] = O::$license;
-		$controller[] = 'namespace '.O::$namespace.'\Controller;';
+		$controller[] = 'namespace '.O::$namespace.';';
 		$controller[] = '';
 		$controller[] = 'class MyControllerCTLR extends \BlazePHP\Controller';
 		$controller[] = '{';
