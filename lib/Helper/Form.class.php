@@ -16,7 +16,7 @@
 namespace BlazePHP\Helper;
 
 use BlazePHP\Globals as G;
-
+use \BlazePHP\Debug as D;
 /**
  * FormHelper
  *
@@ -58,6 +58,7 @@ class Form
 	 */
 	public function __construct($security=Form::INSECURE, $name='blazeform')
 	{
+
 		if(empty($name)) {
 			throw new \Exception(
 				__CLASS__.'::'.__FUNCTION__.' - A form must have a name'
@@ -67,8 +68,9 @@ class Form
 		$this->security   = (integer)$security;
 		$this->formValues = new \stdClass();
 
-
+		// \BlazePHP\Debug::printre(array(G::$request->__blaze_form_name, $this->name));
 		if(G::$request->__blaze_form_name === $this->name) {
+
 			if(G::$request->getMethod() !== strtoupper($this->method)) {
 				throw new \Exception(
 					__CLASS__.'::'.__FUNCTION__.' - The request method ['.$_SERVER['REQUEST_METHOD']
@@ -86,6 +88,7 @@ class Form
 			}
 
 			if(G::$request->{$this->name}) {
+				// D::printre(G::$request->{$this->name});
 				$receivedHashValues = array($this->name);
 				foreach(G::$request->{$this->name} as $name => $value) {
 					$this->formValues->{$name} = $value;
@@ -182,6 +185,7 @@ class Form
 	 */
 	private function verifyFormKey($formKey)
 	{
+		// D::printre(G::$session);
 		$formKeys = G::$session->formKeys;
 
 		if(isset($formKeys[$this->name]) && $formKeys[$this->name] === $formKey) {
@@ -286,7 +290,7 @@ class Form
 	 * @param $values - PHP stdClass object holding the form values
 	 * @return - void
 	 */
-	public function populate(stdClass $values)
+	public function populate(\stdClass $values)
 	{
 		if(!is_object($values)) {
 			throw new \Exception(
@@ -393,7 +397,7 @@ class Form
 	{
 		$formHashes = G::$session->formHashes;
 
-		if(in_array($this->security, array(self::VERIFY_FORM_ONLY, self::SECURE))) {
+		if(in_array($this->security, array(self::VERIFY_FORM_ONLY, self::SINGLE_USE_ONLY, self::SECURE))) {
 			$formHashes[$this->name] = md5(implode($this->formHashValues));
 			G::$session->formHashes = $formHashes;
 			G::$session->save();
@@ -456,6 +460,25 @@ class Form
 
 
 
+	/**
+	 *
+	 */
+	public function helpBlock($name, $classes='with-errors')
+	{
+		$s = array();
+		$s[] = '<div class="form-help-block ';
+		$s[] = $classes;
+		$s[] = '">';
+		if($this->hasError($name)) {
+			$s[] = $this->getError($name);
+		}
+		$s[] = '</div>';
+
+		return implode($s);
+	}
+
+
+
 
 	/**
 	 * inputText - Returns a text input tag and adds the element to the form hash
@@ -478,6 +501,37 @@ class Form
 		$s[] = '"';
 		$s[] = ' '.$additionalAttributes;
 		$s[] = '>';
+		$s[] = $this->helpBlock($name);
+
+		return implode($s);
+	}
+
+
+
+
+
+	/**
+	 * inputEmail - Returns an email input tag and adds the element to the form hash
+	 *
+	 * @param $name - Name of the input tag: name="$name"
+	 * @param $value - Value of the input tag: value="$value"
+	 * @param $additionalAttributes - A string of additional attributes to be placed directly in the <input> tag
+	 * @return - string
+	 */
+	public function inputEmail($name, $value=null, $additionalAttributes=null)
+	{
+		$s = self::input($name, 'email');
+		$s[] = ' value="';
+		if($value === null && isset($this->formValues->{$name})) {
+			$s[] = preg_replace('/\"/', '&quot;', $this->formValues->{$name});
+		}
+		else {
+			$s[] = preg_replace('/\"/', '&quot;', $value);
+		}
+		$s[] = '"';
+		$s[] = ' '.$additionalAttributes;
+		$s[] = '>';
+		$s[] = $this->helpBlock($name);
 
 		return implode($s);
 	}
@@ -507,6 +561,7 @@ class Form
 		$s[] = '"';
 		$s[] = ' '.$additionalAttributes;
 		$s[] = '>';
+		$s[] = $this->helpBlock($name);
 
 		return implode($s);
 	}
@@ -614,6 +669,7 @@ class Form
 			$s[] = htmlspecialchars($value);
 		}
 		$s[] = '</textarea>';
+		$s[] = $this->helpBlock($name);
 
 		return implode($s);
 	}
@@ -680,6 +736,7 @@ class Form
 			$s[] = '</option>';
 		}
 		$s[] = '</select>';
+		$s[] = $this->helpBlock($name);
 
 		return implode($s);
 	}
@@ -730,6 +787,7 @@ class Form
 		}
 		$s[] = "\n";
 		$s[] = '</select>';
+		$s[] = $this->helpBlock($name);
 
 		return implode($s);
 	}

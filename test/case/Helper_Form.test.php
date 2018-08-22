@@ -99,6 +99,17 @@ final class Helper_FormTest extends TestCase
 
 	}
 
+	public function testInputEmail()
+	{
+		G::$session = new Session();
+		$form = new Form(Form::SECURE, 'testform_secure');
+
+		$data = $form->inputEmail('email', null, 'class="input_class"');
+
+		$this->assertValueEquals($data, '<input type="email" name="testform_secure[email]" id="email" value="" class="input_class">');
+
+	}
+
 	public function testInputPassword()
 	{
 		G::$session = new Session();
