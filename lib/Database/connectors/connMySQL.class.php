@@ -174,6 +174,11 @@ class connMySQL extends \BlazePHP\Struct
 		$this->connect();
 		return $this->C->autocommit($autocommit);
 	}
+	public function begin()
+	{
+		$this->connect();
+		return $this->C->begin_transaction();
+	}
 	public function commit()
 	{
 		return $this->C->commit();
