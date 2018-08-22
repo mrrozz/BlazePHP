@@ -30,6 +30,7 @@ class MySQLObject extends DatabaseObject
 	protected $__attributeValues;
 	protected $__attributeChecksum;   // Holds a checksum of the original data per attribute
 	protected $__attributeList;       // Each attribute requires a type to handle pre and post processing for read/writes
+	protected $__attributeDefaults;
 	protected $__attributeValidation;
 	protected $__attributePack;
 	protected $__attributeUnPack;
@@ -63,10 +64,7 @@ class MySQLObject extends DatabaseObject
 	{
 		if ($dbConnection === null) {
 			if(G::$db->load_data_config === false) {
-				throw new \ErrorException(
-
-				);
-				throw new Exception(
+				throw new \Exception(
 					__CLASS__.'::'.__FUNCTION__.' - The Environtment configuration is not set to load any database configuration.'
 					.' Set Environment::load_data_config = true; and ensure you have conigured a database connection.'
 				);
@@ -116,7 +114,10 @@ class MySQLObject extends DatabaseObject
 		}
 		else {
 			foreach ($this->__attributeList as $attribute => $type) {
-				$this->__attributeValues[$attribute] = self::unpackValue(null, $this->__attributeList[$attribute]);
+				$this->__attributeValues[$attribute] = self::unpackValue(
+					 ($this->__attributeDefaults[$attribute] !== null) ? base64_decode($this->__attributeDefaults[$attribute]) : null
+					,$this->__attributeList[$attribute]
+				);
 			}
 			$this->__isNew = true;
 		}
@@ -454,6 +455,8 @@ class MySQLObject extends DatabaseObject
 	 */
 	public function save($debug=false)
 	{
+
+
 		if ($this->__error === true) {
 			throw new \Exception(
 				__CLASS__.'::'.__FUNCTION__.' - '.$this->__errorMessage
@@ -469,7 +472,7 @@ class MySQLObject extends DatabaseObject
 
 		foreach ($this->__attributeList as $attribute => $type) {
 
-			$value =& $this->__attributeValues[$attribute];
+			$value = $this->__attributeValues[$attribute];
 
 			// Check to see what values have changed.  If this is a new record, only set the values that are not empty;
 			if ($this->__isNew === true) {
@@ -506,6 +509,9 @@ class MySQLObject extends DatabaseObject
 			array_unshift($set, '`id`='.Toolbox::makeGUID($this->__dbMaster->nodeID));
 		}
 
+
+
+
 		if (($this->__isNew === true && count($set) > 0) || (count($newChecksumValues) > 0 && count($set) > 0)) {
 			if ($this->__isNew === true) {
 				$sql = 'INSERT INTO `'.$this::$__dbTableName.'` SET '.implode(', ', $set);
@@ -535,6 +541,8 @@ class MySQLObject extends DatabaseObject
 
 			// This object is no longer new
 			$this->__isNew = false;
+
+			// $this->populate($this->getValues());
 
 			return true;
 		}
@@ -631,12 +639,15 @@ class MySQLObject extends DatabaseObject
 			}
 			return $value;
 		}
-		else if ($type == 'timestamp') {
+		else if ($type == 'timestamp' || $type == 'datetime') {
 			//printr(get_class($value));
 			if(gettype($value) != 'object' || get_class($value) != 'DateTime') {
 				$value = new \DateTime((string)$value);
 			}
-			return '\''.$value->format('Y-m-d H:i:s').'\'';
+			$value->setTimezone(new \DateTimezone('UTC'));
+			$return = '\''.$value->format('Y-m-d H:i:s').'\'';
+			$value->setTimezone(new \DateTimezone(date_default_timezone_get()));
+			return $return;
 		}
 
 		throw new \ErrorException('MySQLObject: The type for this value is not recognized ['.$type.'].');
@@ -670,8 +681,10 @@ class MySQLObject extends DatabaseObject
 			}
 			return explode(',', $value);
 		}
-		else if ($type == 'timestamp' && !empty($value)) {
-			return new \DateTime($value);
+		else if (($type == 'timestamp' || $type == 'datetime') && !empty($value)) {
+			$return = new \DateTime($value, new \DateTimeZone("UTC"));
+			$return->setTimezone(new \DateTimezone(date_default_timezone_get()));
+			return $return;
 		}
 		else if ($type == 'set') {
 			if(empty($value)) {
