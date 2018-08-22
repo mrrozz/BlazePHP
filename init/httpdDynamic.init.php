@@ -47,7 +47,7 @@ G::$request = new Request();
 /*
  * Load the configuration
  */
-$configLoc = MODULE_ROOT . '/conf/'.G::$request->getHostConfig().'.conf.php';
+$configLoc = MODULE_ROOT . '/conf/httpdDynamic.conf.php';
 if(!file_exists($configLoc)) {
 	throw new \Exception('The configuration file ['.G::$request->getHostConfig().'.conf.php] was not found.', 1);
 	exit;

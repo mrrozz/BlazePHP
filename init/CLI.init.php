@@ -44,6 +44,10 @@ class initCLI extends \BlazePHP\initCLI_common
 
 		parent::parse($cli);
 
+		if($cli->module) {
+			define('MODULE_ROOT', dirname(__DIR__).'/module/mod-'.$cli->module);
+		}
+
 		// Validate the module
 		$moduleRaw = $cli->module;
 		if(!empty($moduleRaw)) {
