@@ -55,6 +55,18 @@ class Network
 	}
 
 
+	/**
+	 * POSTJSON - Single POSTJSON requests
+	 *
+	 * @param $parameters POSTJSONParameter
+	 * @return The response data plus the connection info
+	 */
+	public static function POSTJSON(POSTJSONParameters $parameters)
+	{
+		return self::requestSingle('POSTJSON', $parameters);
+	}
+
+
 
 	/*
 	 * GET_multi - Execute multiple parallel URL requests
@@ -136,6 +148,12 @@ class Network
 			$options[CURLOPT_POST]       = 1;
 			$p->headers[] = 'Content-Length: '.(string)strlen($p->postFields);
 		}
+		else if($type === 'POSTJSON') {
+			$options[CURLOPT_POSTFIELDS] = $p->postJSON;
+			$options[CURLOPT_POST]       = 1;
+			$p->headers[] = 'Content-Length: '.(string)strlen($p->postJSON);
+			$p->headers[] = 'Content-Type: application/json';
+		}
 		else if($type === 'GET') {
 			$options[CURLOPT_HTTPGET] = 1;
 		}
@@ -163,6 +181,10 @@ class Network
 
 		if(is_array($p->headers) && count($p->headers) > 0) {
 			$options[CURLOPT_HTTPHEADER] = $p->headers;
+		}
+
+		if($type === 'POST') {
+			\BlazePHP\Debug::printr(array($options, $p));
 		}
 
 		curl_setopt_array($ch, $options);
@@ -336,7 +358,7 @@ class Network
 	{
 		$type = strtoupper($type);
 
-		if(!in_array($type, array('POST', 'GET'))) {
+		if(!in_array($type, array('POST', 'POSTJSON', 'GET'))) {
 			throw new \Exception(
 				__CLASS__.'::'.__FUNCTION__.' - The parameters object ['.(string)$type.'] does not exists'
 			);
@@ -345,9 +367,13 @@ class Network
 		if($type === 'POST') {
 			return new POSTParameters();
 		}
-		if($type === 'GET') {
+		elseif($type === 'POSTJSON') {
+			return new POSTJSONParameters();
+		}
+		elseif($type === 'GET') {
 			return new GETParameters();
 		}
+
 	}
 
 
@@ -411,7 +437,7 @@ abstract class RequestParameters extends Struct
 
 	public $logfile       = null;
 
-	protected $type         = null;
+	protected $type       = null;
 
 	public function getType()
 	{
@@ -429,4 +455,11 @@ class POSTParameters extends RequestParameters
 	public  $postFields = null;
 
 	protected $type       = 'POST';
+}
+
+class POSTJSONParameters extends RequestParameters
+{
+	public $postJSON = null;
+
+	protected $type  = 'POSTJSON';
 }
