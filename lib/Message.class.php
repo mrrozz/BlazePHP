@@ -73,10 +73,10 @@ class Message extends Struct
 
 	public static function error($message, $addNewLine=true, $color=null)
 	{
-		if(!empty($color)) {
+		if(is_object(G::$cli) && !empty($color)) {
 			G::$cli->error(G::$cli->colorize($message, $color), $addNewLine);
 		}
-		else {
+		elseif(is_object(G::$cli)) {
 			G::$cli->error($message, $addNewLine);
 		}
 		if(is_object(G::$log) && get_class(G::$log) == '\BlazePHP\Log') {
