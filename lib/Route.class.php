@@ -63,7 +63,7 @@ class Route extends Struct
 		);
 		$replace = array(
 			 '[0-9]+'
-			,'[a-zA-Z0-9\-\._]+'
+			,'[a-zA-Z0-9\-\.\%\@_]+'
 		);
 		$regexAliases = array();
 		foreach($this->aliases as $alias => $route) {
@@ -109,6 +109,7 @@ class Route extends Struct
 				$matches[$i] = $alias;
 			}
 		}
+
 		if(count($matches) <= 0) {
 			return $path;
 		}
@@ -131,7 +132,7 @@ class Route extends Struct
 			$partCheck = preg_replace('/^[0-9]+$/', '%i', $pathPart, -1, $found);
 			if($found <= 0) {
 				$type = 'string';
-				$partCheck = preg_replace('/^[a-z0-9A-Z\-_]+$/', '%s', $pathPart, -1, $found);
+				$partCheck = preg_replace('/^[a-z0-9A-Z\-\.\%\@_]+$/', '%s', $pathPart, -1, $found);
 			}
 
 			$parameterValues[$type][] = $pathPart;
