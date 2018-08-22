@@ -110,4 +110,11 @@ class Request
 	{
 		return json_decode(file_get_contents("php://input"));
 	}
+
+	public function refererRoute()
+	{
+		return (isset(_SERVER["HTTP_REFERER"]))
+			? parse_url(_SERVER["HTTP_REFERER"])["path"]
+			: null;
+	}
 }
