@@ -89,7 +89,7 @@ class Log extends Struct
 		}
 
 		if(this->addTimeStamp === true) {
-			let message            = "[" . date("Y-m-d H:i:s") . "] " . message;
+			let message            = "[" . gmdate("Y-m-d H:i:s") . "] " . message;
 			let this->addTimeStamp = false;
 		}
 
