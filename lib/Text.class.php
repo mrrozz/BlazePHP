@@ -282,5 +282,12 @@ class Text
 
 
 
-
+	public static function encode64URL($url)
+	{
+		return urlencode(base64_encode($url));
+	}
+	public static function decode64URL($url64)
+	{
+		return base64_decode($url64);
+	}
 }
