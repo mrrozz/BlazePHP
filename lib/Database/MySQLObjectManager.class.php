@@ -15,6 +15,7 @@
  */
 namespace BlazePHP\Database;
 use \BlazePHP\Globals as G;
+use \BlazePHP\Debug   as D;
 use \BlazePHP\Struct;
 
 /**
@@ -49,6 +50,21 @@ class MySQLObjectManager
 		$this->dbSlave     =& G::$db->{$dbInfo->dbConnectionName}->slave;
 		$this->dbTableName = $dbInfo->dbTableName;
 	}
+
+
+	// public function __call($name, $parameters)
+	// {
+	// 	$parts = explode('getBy', $name);
+	// 	if(count($parts) !== 2 || !empty($parts[0])) {
+	// 		throw new \Exception( implode(' ', array(
+	// 			 __CLASS__.'::'.__FUNCTION__
+	// 			,' - The method ['.$name.'] does not exist'
+	// 		)));
+	// 	}
+	// 	$field = str
+
+	// 	D::printre($parts);
+	// }
 
 
 	/**
@@ -170,7 +186,33 @@ class MySQLObjectManager
 	}
 
 
-
+	public function listFullObjectByIds($ids, $fields='*', $start=null, $count=null, $dumpSQL=false)
+	{
+		$sql             = array();
+		$sql[]           = 'WHERE';
+		$sql[]           = '     `id` IN('.implode(',', $ids).')';
+		$conditions = implode(' ', $sql);
+		// D::printre($mlo);
+		return $this->_list('object', $fields, $start, $count, $conditions, $dumpSQL);
+	}
+	public function listDataByIds($ids, $fields='*', $start=null, $count=null, $dumpSQL=false)
+	{
+		$sql             = array();
+		$sql[]           = 'WHERE';
+		$sql[]           = '     `id` IN('.implode(',', $ids).')';
+		$conditions = implode(' ', $sql);
+		// D::printre($mlo);
+		return $this->_list('data', $fields, $start, $count, $conditions, $dumpSQL);
+	}
+	public function listDataHTMLByIds($ids, $fields='*', $start=null, $count=null, $dumpSQL=false)
+	{
+		$sql             = array();
+		$sql[]           = 'WHERE';
+		$sql[]           = '     `id` IN('.implode(',', $ids).')';
+		$conditions = implode(' ', $sql);
+		// D::printre($mlo);
+		return $this->_list('html', $fields, $start, $count, $conditions, $dumpSQL);
+	}
 
 
 	public function listFullObject(ManagerListOptions $mlo)
