@@ -154,7 +154,14 @@ abstract class Controller extends ControllerAPI
 		return $this->processFile('view-layout', ControllerValues::$layout, false);
 	}
 
-	public function renderView($file) {
+	public function renderView($file)
+	{
+		return $this->processFile('view', $file, false);
+	}
+
+	public function renderViewCSS($file)
+	{
+		header('Content-Type: text/css');
 		return $this->processFile('view', $file, false);
 	}
 
