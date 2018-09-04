@@ -106,7 +106,17 @@ class Request
 		return (array_key_exists("HTTP_X_REQUESTED_WITH", _SERVER) && _SERVER["HTTP_X_REQUESTED_WITH"] == "XMLHttpRequest");
 	}
 
-	public function getAJAXData()
+	public function getPOST()
+	{
+		if(_SERVER["HTTP_CONTENT_TYPE"] === "application/json") {
+			return this->getJSON();
+		}
+		else {
+			return _POST;
+		}
+	}
+
+	public function getJSON()
 	{
 		return json_decode(file_get_contents("php://input"));
 	}

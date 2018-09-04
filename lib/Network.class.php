@@ -183,10 +183,6 @@ class Network
 			$options[CURLOPT_HTTPHEADER] = $p->headers;
 		}
 
-		if($type === 'POST') {
-			\BlazePHP\Debug::printr(array($options, $p));
-		}
-
 		curl_setopt_array($ch, $options);
 
 		ob_start();
