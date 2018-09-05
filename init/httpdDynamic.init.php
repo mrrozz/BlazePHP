@@ -33,6 +33,8 @@ define('ABS_MODULE',    ABS_ROOT.'/module');
 require_once(ABS_ROOT.'/lib/Struct.class.php');
 require_once(ABS_ROOT.'/lib/Globals.class.php');
 require_once(ABS_ROOT.'/lib/Message.class.php');
+// G::$debug =true;
+// require_once(ABS_ROOT.'/lib/Debug.class.php');
 
 /*
  * Define the autoloader
@@ -44,15 +46,6 @@ require_once(__DIR__.'/autoloader/Module.autoloader.php');
  */
 G::$request = new Request();
 
-/*
- * Load the configuration
- */
-$configLoc = MODULE_ROOT . '/conf/httpdDynamic.conf.php';
-if(!file_exists($configLoc)) {
-	throw new \Exception('The configuration file ['.G::$request->getHostConfig().'.conf.php] was not found.', 1);
-	exit;
-}
-require($configLoc);
 
 /*
  * Load the controller map
@@ -64,6 +57,7 @@ if(!file_exists($controllerMapLoc)) {
 }
 require($controllerMapLoc);
 
+
 /*
  * Load the module map
  */
@@ -73,6 +67,18 @@ if(!file_exists($objectMapLoc)) {
 	die($message);
 }
 require_once($objectMapLoc);
+
+
+/*
+ * Load the configuration
+ */
+$configLoc = MODULE_ROOT . '/conf/httpdDynamic.conf.php';
+if(!file_exists($configLoc)) {
+	throw new \Exception('The configuration file ['.G::$request->getHostConfig().'.conf.php] was not found.', 1);
+	exit;
+}
+require($configLoc);
+
 
 /*
  * Load the requested controller if it exists
