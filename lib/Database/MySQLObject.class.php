@@ -17,6 +17,7 @@ namespace BlazePHP\Database;
 use \BlazePHP\Database\DatabaseObject;
 use \BlazePHP\Globals as G;
 use \BlazePHP\Message as M;
+use \BlazePHP\Debug   as D;
 
 /**
  * MySQL Object class handles all entity relations with a specific table
@@ -87,7 +88,7 @@ class MySQLObject extends DatabaseObject
 			$this->__attributeList = $attributeList;
 		}
 
-
+		// D::printr($id, false, true);
 		if ((integer)$id > 0) {
 			// printre('made it');
 			$result = $this->__dbSlave->query('SELECT * FROM `'.$this::$__dbTableName.'` WHERE `id`='.$id);
@@ -668,7 +669,8 @@ class MySQLObject extends DatabaseObject
 	{
 		if ($type == 'object') {
 			if($value === null) {
-				return new \stdClass();
+				// return new \stdClass();
+				return null;
 			}
 			return json_decode($value);
 		}
