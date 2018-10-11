@@ -1,4 +1,4 @@
-/**
+	/**
  *
  * BlazePHP.com - A framework for high performance
  * Copyright 2012 - 2017, BlazePHP.com
@@ -65,7 +65,7 @@ class Request
 	{
 		var httphost;
 		let httphost = (isset(_SERVER["HTTP_HOST"])) ? strtolower(_SERVER["HTTP_HOST"]) : "default";
-		return preg_replace("/[^a-z]/", "", httphost);
+		return preg_replace("/[^a-z0-9]/", "", httphost);
 	}
 
 
