@@ -75,4 +75,22 @@ abstract class ControllerAPI extends Struct
 	{
 		return G::$route->getParameters();
 	}
+
+	public function buildResponse()
+	{
+		return new APIResponse();
+	}
+}
+
+
+class APIResponse extends Struct
+{
+	public $status   = 'success';
+	public $messages = array();
+	public $data     = null;
+
+	public function __construct()
+	{
+		$this->data = new \stdClass();
+	}
 }
