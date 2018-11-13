@@ -38,6 +38,12 @@ require_once(ABS_ROOT.'/lib/CLI.class.php');
 require_once(ABS_ROOT.'/lib/Message.class.php');
 
 
+$objectMapLoc = dirname(__DIR__).'/module/object.map.php';
+if(!file_exists($objectMapLoc)) {
+	$message = 'ERROR: The file [{BlazePHP_ROOT}/module/object.map.php] does not exist.  Run {BlazePHP_ROOT}/bin/makemodulemap to generate the object map file.';
+	die($message);
+}
+require_once($objectMapLoc);
 
 
 abstract class initCLI_common

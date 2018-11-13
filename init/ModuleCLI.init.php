@@ -19,13 +19,6 @@ require_once(__DIR__.'/_common.init.php');
 use BlazePHP\CLI;
 use BlazePHP\Message as M;
 
-$objectMapLoc = dirname(__DIR__).'/module/object.map.php';
-if(!file_exists($objectMapLoc)) {
-	$message = 'ERROR: The file [{BlazePHP_ROOT}/module/object.map.php] does not exist.  Run {BlazePHP_ROOT}/bin/makemodulemap to generate the object map file.';
-	die($message);
-}
-require_once($objectMapLoc);
-
 class initCLI extends \BlazePHP\initCLI_common
 {
 	public static function parse($cli)

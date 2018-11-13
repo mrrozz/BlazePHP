@@ -276,13 +276,13 @@ if(!preg_match('/^[a-zA-Z0-9_]*$/', O::$dbConfigModel)) {
 }
 if(!isset(G::$db->{O::$dbConfigModel})) {
 	// G::$cli->error('--db-config ['.O::$dbConfigModel.'] is not valid. Valid db-config options are: '.implode(', ', array_keys(get_object_vars(G::$db))));
-	M::error('ERROR: --db-config ['.O::$dbConfigModel.'] is not valid. Valid db-config options are: '.implode(', ', array_keys(get_object_vars(G::$db))), M::ADD_NEW_LINE, 'red');
+	M::error('ERROR: --db-config-model ['.O::$dbConfigModel.'] is not valid. Valid db-config options are: '.implode(', ', array_keys(get_object_vars(G::$db))), M::ADD_NEW_LINE, 'red');
 	exit;
 }
 // Admin config
 if(!preg_match('/^[a-zA-Z0-9_]*$/', O::$dbConfigAdmin)) {
 	// G::$cli->error('--db-config ['.O::$dbConfigAdmin.'] is not valid.  Valid characters: a-z A-Z 0-9 _');
-	M::error('ERROR: --db-config ['.O::$dbConfigAdmin.'] is not valid.  Valid characters: a-z A-Z 0-9 _', M::ADD_NEW_LINE, 'red');
+	M::error('ERROR: --db-config-admin ['.O::$dbConfigAdmin.'] is not valid.  Valid characters: a-z A-Z 0-9 _', M::ADD_NEW_LINE, 'red');
 	exit;
 }
 if(!isset(G::$db->{O::$dbConfigAdmin})) {
