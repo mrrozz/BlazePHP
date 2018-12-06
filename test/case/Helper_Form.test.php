@@ -95,8 +95,7 @@ final class Helper_FormTest extends TestCase
 
 		$data = $form->inputText('name_first', null, 'class="input_class"');
 
-		$this->assertValueEquals($data, '<input type="text" name="testform_secure[name_first]" id="name_first" value="" class="input_class">');
-
+		$this->assertValueEquals($data, '<input type="text" name="testform_secure[name_first]" id="name_first" value="" class="input_class"><div class="form-help-block with-errors"></div>');
 	}
 
 	public function testInputEmail()
@@ -106,8 +105,7 @@ final class Helper_FormTest extends TestCase
 
 		$data = $form->inputEmail('email', null, 'class="input_class"');
 
-		$this->assertValueEquals($data, '<input type="email" name="testform_secure[email]" id="email" value="" class="input_class">');
-
+		$this->assertValueEquals($data, '<input type="email" name="testform_secure[email]" id="email" value="" class="input_class"><div class="form-help-block with-errors"></div>');
 	}
 
 	public function testInputPassword()
@@ -117,7 +115,7 @@ final class Helper_FormTest extends TestCase
 
 		$data = $form->inputPassword('password', null, 'class="password_class"');
 
-		$this->assertValueEquals($data, '<input type="password" name="testform_secure[password]" id="password" value="" class="password_class">');
+		$this->assertValueEquals($data, '<input type="password" name="testform_secure[password]" id="password" value="" class="password_class"><div class="form-help-block with-errors"></div>');
 	}
 
 	public function testInputCheckbox()
@@ -147,7 +145,7 @@ final class Helper_FormTest extends TestCase
 
 		$data = $form->textarea('long_text_block', 'THIS IS THE TEXTAREA VALUE', 'class="textarea_class');
 
-		$this->assertValueEquals($data, '<textarea name="testform_secure[long_text_block]" id="long_text_block" class="textarea_class>THIS IS THE TEXTAREA VALUE</textarea>');
+		$this->assertValueEquals($data, '<textarea name="testform_secure[long_text_block]" id="long_text_block" class="textarea_class>THIS IS THE TEXTAREA VALUE</textarea><div class="form-help-block with-errors"></div>');
 	}
 
 	public function testSelectSingle()
@@ -167,7 +165,7 @@ final class Helper_FormTest extends TestCase
 		}
 		$data = implode($cleaned);
 
-		$this->assertValueEquals($data, '<select name="testform_secure[single_choice]" id="single_choice" class="single_choice_class"><option value="one">First Choice</option><option value="two" selected="selected">Second Choice</option><option value="three">Third Choice</option></select>');
+		$this->assertValueEquals($data, '<select name="testform_secure[single_choice]" id="single_choice" class="single_choice_class"><option value="one">First Choice</option><option value="two" selected="selected">Second Choice</option><option value="three">Third Choice</option></select><div class="form-help-block with-errors"></div>');
 	}
 
 	public function testSelectByGroup()
@@ -194,7 +192,7 @@ final class Helper_FormTest extends TestCase
 		}
 		$data = implode($cleaned);
 
-		$this->assertValueEquals($data, '<select name="testform_secure[single_choice]" id="single_choice" class="group_choice_class"><optgroup label="Group #1"><option value="one">First Choice</option><option value="two">Second Choice</option><option value="three">Third Choice</option></optgroup><optgroup label="Group #2"><option value="eh">A</option><option value="bee" selected="selected">B</option><option value="sea">C</option></optgroup></select>');
+		$this->assertValueEquals($data, '<select name="testform_secure[single_choice]" id="single_choice" class="group_choice_class"><optgroup label="Group #1"><option value="one">First Choice</option><option value="two">Second Choice</option><option value="three">Third Choice</option></optgroup><optgroup label="Group #2"><option value="eh">A</option><option value="bee" selected="selected">B</option><option value="sea">C</option></optgroup></select><div class="form-help-block with-errors"></div>');
 	}
 
 	public function testInputSubmit()

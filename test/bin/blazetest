@@ -103,7 +103,7 @@ else if(!is_dir(O::$testDir)) {
 }
 
 try {
-	// Filter files that end with *Test.php firstly
+	// Filter files that end with *.test.php firstly
 	$filters     = array('/\.test\.php$/');
 	$omitFilters = array();
 
@@ -114,6 +114,7 @@ try {
 			$filters[] = '/'.$filter.'/';
 		}
 	}
+	// D::printre($filters);
 
 	// Consider the omitted filter CSV if it is provided
 	if(O::$omitCSV !== null) {

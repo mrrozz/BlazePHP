@@ -24,8 +24,7 @@ final class LockTest extends TestCase
 	public function testLock()
 	{
 		$lock = new Lock('test');
-		D::printr($lock);
-
+		$this->expectException(\Exception::class);
 		$lock2 = new Lock('test');
 	}
 

@@ -25,17 +25,17 @@ use BlazeTest\TestCase;
 $_REQUEST['__requested_path'] = 'myController/myAction/id:202/list:34/order:asc';
 G::$request = new Request();
 
-class Route extends \BlazePHP\Route
+class _Route extends \BlazePHP\Route
 {
 	public function __construct()
 	{
 		// %i - the argument is treated as an unsigned integer
 		// %s - the argument is treated as and presented as a string matching the following pattern '[a-zA-Z0-9_\-\.]'.
 
-		// $this->alias('/mycontroller/myaction/id:$i1',          '/myAlias/%i');
-		// $this->alias('/mycontroller/myaction/id:$i1/form:$i2', '/myAlias/%i/%i');
-		// $this->alias('/blog/view/article:$s1/mode:$s2',        '/blog/%s/%s');
-		// $this->alias('/blog/view/article:$s1',                 '/blog/%s');
+		$this->alias('/mycontroller/myaction/id:$i1',          '/myAlias/%i');
+		$this->alias('/mycontroller/myaction/id:$i1/form:$i2', '/myAlias/%i/%i');
+		$this->alias('/blog/view/article:$s1/mode:$s2',        '/blog/%s/%s');
+		$this->alias('/blog/view/article:$s1',                 '/blog/%s');
 
 		parent::__construct();
 	}
@@ -54,24 +54,24 @@ final class RouteTest extends TestCase
 
 	public function testInstanceCreates()
 	{
-		$this->assertInstanceOf(Route::class, new Route());
+		$this->assertInstanceOf(_Route::class, new _Route());
 	}
 
 	public function testGetController()
 	{
-		$route = new Route();
+		$route = new _Route();
 		$this->assertTrue('mycontroller' === $route->getController());
 	}
 
 	public function testGetAction()
 	{
-		$route = new Route();
+		$route = new _Route();
 		$this->assertTrue('myaction' === $route->getAction());
 	}
 
 	public function testGetParameters()
 	{
-		$route = new Route();
+		$route = new _Route();
 		$parameters = $route->getParameters();
 		$this->assertArray($parameters);
 		$this->assertArrayNotEmpty($parameters);
@@ -84,7 +84,7 @@ final class RouteTest extends TestCase
 	{
 		$_REQUEST['__requested_path'] = 'myAlias/202/234';
 		G::$request = new Request();
-		$route      = new Route();
+		$route      = new _Route();
 		$this->assertTrue('mycontroller' === $route->getController());
 		$this->assertTrue('myaction' === $route->getAction());
 		$parameters = $route->getParameters();
@@ -95,7 +95,7 @@ final class RouteTest extends TestCase
 
 		$_REQUEST['__requested_path'] = 'myAlias/203';
 		G::$request = new Request();
-		$route      = new Route();
+		$route      = new _Route();
 		$this->assertTrue('mycontroller' === $route->getController());
 		$this->assertTrue('myaction' === $route->getAction());
 		$parameters = $route->getParameters();
@@ -109,7 +109,7 @@ final class RouteTest extends TestCase
 	{
 		$_REQUEST['__requested_path'] = 'blog/test-article-name/edit/admin/quick';
 		G::$request = new Request();
-		$route      = new Route();
+		$route      = new _Route();
 		$this->assertValueEquals('blog', $route->getController());
 		$this->assertValueEquals('view', $route->getAction());
 		$parameters = $route->getParameters();
