@@ -630,6 +630,14 @@ class MySQLObject extends DatabaseObject
 				return json_encode($value);
 			}
 		}
+		else if ($type == 'object' && empty($value)) {
+			if($forSQL) {
+				return 'NULL';
+			}
+			else {
+				return null;
+			}
+		}
 		else if ($type == 'set') {
 			if(is_array($value)) {
 				$value = implode(',', $value);
