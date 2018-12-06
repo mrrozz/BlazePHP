@@ -33,8 +33,6 @@ define('ABS_MODULE',    ABS_ROOT.'/module');
 require_once(ABS_ROOT.'/lib/Struct.class.php');
 require_once(ABS_ROOT.'/lib/Globals.class.php');
 require_once(ABS_ROOT.'/lib/Message.class.php');
-// G::$debug =true;
-// require_once(ABS_ROOT.'/lib/Debug.class.php');
 
 /*
  * Define the autoloader
@@ -45,7 +43,6 @@ require_once(__DIR__.'/autoloader/Module.autoloader.php');
  * Create the Request object
  */
 G::$request = new Request();
-
 
 /*
  * Load the controller map

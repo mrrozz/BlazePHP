@@ -14,10 +14,10 @@
  *
  */
 namespace BlazePHP;
-
-require_once(__DIR__.'/_common.init.php');
 use BlazePHP\CLI;
 use BlazePHP\Message as M;
+
+require_once(__DIR__.'/common/CLI.common.php');
 
 class initCLI extends \BlazePHP\initCLI_common
 {

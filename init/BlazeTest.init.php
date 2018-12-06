@@ -18,7 +18,7 @@ use BlazePHP\CLI;
 use BlazePHP\Message as M;
 use BlazePHP\Globals as G;
 
-require_once(__DIR__.'/_common.init.php');
+require_once(__DIR__.'/common/CLI.common.php');
 
 class initCLI extends initCLI_common
 {
