@@ -48,6 +48,20 @@ class Request
 		return true;
 	}
 
+	public function getProtocol()
+	{
+		var protocol;
+		let protocol = "http";
+		if(isset(_SERVER["REQUEST_SCHEME"]) && !empty(_SERVER["REQUEST_SCHEME"])) {
+			let protocol = strtolower(_SERVER["REQUEST_SCHEME"]);
+		}
+		elseif(isset(_SERVER["SERVER_PROTOCOL"]) && !empty(_SERVER["SERVER_PROTOCOL"])) {
+			let protocol = (preg_match("/https/i", _SERVER["SERVER_PROTOCOL"])) ? "https" : "http";
+		}
+
+		return protocol;
+	}
+
 
 	public function getMethod()
 	{

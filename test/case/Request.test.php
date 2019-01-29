@@ -21,6 +21,7 @@ use BlazeTest\TestCase;
 final class RequestTest extends TestCase
 {
 
+
 	public function testInstanceCreates()
 	{
 		$this->assertInstanceOf(R::class, new R());
@@ -34,6 +35,27 @@ final class RequestTest extends TestCase
 		$_SERVER['REQUEST_METHOD'] = 'GET';
 
 		$this->assertTrue('GET' === $request->getMethod());
+	}
+
+
+	// public function __get(name)
+	public function testProtocol()
+	{
+		$request = new R();
+
+
+
+		$this->assertTrue('http' === $request->getProtocol());
+
+		$_SERVER["REQUEST_SCHEME"] = 'http';
+
+		$this->assertTrue('http' === $request->getProtocol());
+
+		unset($_SERVER["REQUEST_SCHEME"]);
+
+		$_SERVER["SERVER_PROTOCOL"] = 'HTTPS/1.1';
+
+		$this->assertTrue('https' === $request->getProtocol());
 	}
 
 
