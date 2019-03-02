@@ -57,18 +57,27 @@ class Route extends Struct
 
 	public function translate($path)
 	{
+		// $debug = ($path == '/xxx/222');
+		// D::console($path);
 		$search = array(
 			 '/^\%i$/'
 			,'/^\%s$/'
 		);
 		$replace = array(
 			 '[0-9]+'
-			,'[a-zA-Z0-9\-\.\%\@_\=]+'
+			,'[a-zA-Z0-9\-\.\%\@_\=\s]+'
 		);
 		$regexAliases = array();
 		foreach($this->aliases as $alias => $route) {
 			$parts      = explode('/', $alias);
 			$regexParts = array();
+
+			// Check for /
+			if(count($parts) == 1 && empty($parts[0])) {
+				$regexAliases[$alias] = array('regex' => array('/^\/$/'), 'route' => $route);
+				continue;
+			}
+
 			foreach($parts as $part) {
 				if(empty($part)) {
 					continue;
@@ -85,11 +94,14 @@ class Route extends Struct
 		$path = preg_replace('/^\//', '', $path);
 		$pathParts = explode('/', $path);
 
+		// if($debug === true) {D::console(array($path, $pathParts));}
+
 		$matches = array();
 		foreach($regexAliases as $alias => $conf) {
 
 			$match = true;
 			$i = 0;
+			// if($debug === true) {D::console(array($conf));}
 			foreach($conf['regex'] as $pattern) {
 				if(!isset($pathParts[$i])) {
 					$match = false;
@@ -106,9 +118,12 @@ class Route extends Struct
 				}
 			}
 			if($match === true) {
+				// if($debug === true) {D::console(array($pattern));}
 				$matches[$i] = $alias;
 			}
 		}
+
+		// if($debug === true) {D::console(array($path, $pathParts, $matches));}
 
 		if(count($matches) <= 0) {
 			return $path;
