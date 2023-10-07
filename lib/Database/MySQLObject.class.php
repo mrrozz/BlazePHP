@@ -88,14 +88,12 @@ class MySQLObject extends DatabaseObject
 			$this->__attributeList = $attributeList;
 		}
 
-		// D::printr($id, false, true);
 		if ((integer)$id > 0) {
-			// printre('made it');
 			$result = $this->__dbSlave->query('SELECT * FROM `'.$this::$__dbTableName.'` WHERE `id`='.$id);
 			if ($result->num_rows > 0) {
 				$row = $result->fetch_assoc();
 				foreach ($row as $attribute => $value) {
-					$this->__attributeChecksum[$attribute] = md5($value);
+					$this->__attributeChecksum[$attribute] = (!is_null($value) ? md5($value) : NULL);
 					$this->__attributeValues[$attribute] = self::unpackValue($value, $this->__attributeList[$attribute]);
 				}
 				$this->__isNew = false;
@@ -231,7 +229,7 @@ class MySQLObject extends DatabaseObject
 					$this->{$name} = self::unpackValue($value, $this->__attributeList[$name]);
 
 					if($setChecksum === true) {
-						$this->__attributeChecksum[$name] = md5($value);
+						$this->__attributeChecksum[$name] = (!is_null($value) ? md5($value) : NULL);
 					}
 				}
 				else {
@@ -489,9 +487,8 @@ class MySQLObject extends DatabaseObject
 				}
 			}
 			else {
-				$md5 = md5(
-					self::packValue($this->__attributeValues[$attribute], $this->__attributeList[$attribute], false)
-				);
+				$packedValue = self::packValue($this->__attributeValues[$attribute], $this->__attributeList[$attribute], false);
+				$chedksumValue = (!is_null($packedValue) ? md5($packedValue) : null);
 
 				if ($attribute == 'time_modified') {
 					$set[] = '`time_modified`=NOW()';
@@ -499,7 +496,7 @@ class MySQLObject extends DatabaseObject
 				else if ($attribute == 'time_created') {
 					continue;
 				}
-				else if ($md5 != $this->__attributeChecksum[$attribute]) {
+				else if ($chedksumValue != $this->__attributeChecksum[$attribute]) {
 					$set[] = '`'.$attribute.'`='.self::packValue($value, $type);
 					$newChecksumValues[$attribute] = $md5;
 				}
@@ -775,8 +772,7 @@ class MySQLObject extends DatabaseObject
 	{
 		foreach($this->__attributeValues as $attribute => $type) {
 			$this->__attributeValues[$attribute] = null;
-			$md5null = md5(null);
-			$this->__attributeChecksum[$attribute] = $md5null;
+			$this->__attributeChecksum[$attribute] = null;
 		}
 	}
 
