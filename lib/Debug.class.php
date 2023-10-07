@@ -136,22 +136,25 @@ if (G::$debug === true) {
 		 */
 		public static function timer($id, $showBacktrace = false, $port = 8000)
 		{
-			if(true !== Toolbox::paramBoolean('log_time')) {
-				return;
+			$id = (string)$id;
+			if(empty($id)) {
+				$id = 'NO-TIMER-ID-SPECIFIED';
 			}
-			if(!is_array(self::$timer)) {
-				list(self::$timer['msec'], self::$timer['sec']) = explode(' ', microtime());
-				$laps = '0.0000000';
+			if(!is_array(self::$timer) || !isset(self::$timer[$id])) {
+				list(self::$timer[$id]['msec'], self::$timer[$id]['sec']) = explode(' ', microtime());
+				$laps = '0.0000000000';
 			}
 			else {
 				list($msec, $sec) = explode(' ', microtime());
-				$secLaps  = $sec  - self::$timer['sec'];
-				$msecLaps = $msec - self::$timer['msec'];
-				$laps = (string)($secLaps+$msecLaps);
-				self::$timer['msec'] = $msec;
-				self::$timer['sec']  = $sec;
+				$secLaps  = $sec  - self::$timer[$id]['sec'];
+				$msecLaps = $msec - self::$timer[$id]['msec'];
+				$laps = (string)number_format(($secLaps+$msecLaps), 10);
+				// self::$timer[$id]['msec'] = $msec;
+				// self::$timer[$id]['sec']  = $sec;
 
 			}
+
+			// D::console($timer);
 
 			$backtrace = self::backtrace();
 
@@ -168,7 +171,7 @@ if (G::$debug === true) {
 				}
 			}
 
-			$content .= "\n".$id.' [Time Laps: '.$laps."]\n\n";
+			$content .= "\n".$id.' [Time Laps: '.$laps."] --- ".json_encode(self::$timer)."\n\n";
 
 			$console = stream_socket_client('tcp://0.0.0.0:'.(string)$port, $errno, $errstr, 30);
 
