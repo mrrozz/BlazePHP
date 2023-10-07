@@ -71,7 +71,7 @@ class Request
 
 	public function getRequestedPath()
 	{
-		return "/" . this->parameters["__requested_path"];
+		return "/" . preg_replace("/^\//", "", this->parameters["__requested_path"]);
 	}
 
 
