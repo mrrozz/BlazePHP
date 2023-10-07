@@ -496,7 +496,7 @@ class Form
 			$s[] = preg_replace('/\"/', '&quot;', $this->formValues->{$name});
 		}
 		else {
-			$s[] = preg_replace('/\"/', '&quot;', $value);
+			$s[] = preg_replace('/\"/', '&quot;', (string)$value);
 		}
 		$s[] = '"';
 		$s[] = ' '.$additionalAttributes;
@@ -526,7 +526,7 @@ class Form
 			$s[] = preg_replace('/\"/', '&quot;', $this->formValues->{$name});
 		}
 		else {
-			$s[] = preg_replace('/\"/', '&quot;', $value);
+			$s[] = preg_replace('/\"/', '&quot;', (string)$value);
 		}
 		$s[] = '"';
 		$s[] = ' '.$additionalAttributes;
@@ -666,7 +666,7 @@ class Form
 			$s[] = htmlspecialchars($this->formValues->{$name});
 		}
 		else {
-			$s[] = htmlspecialchars($value);
+			$s[] = htmlspecialchars((string)$value);
 		}
 		$s[] = '</textarea>';
 		$s[] = $this->helpBlock($name);
