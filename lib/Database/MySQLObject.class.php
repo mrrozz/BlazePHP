@@ -476,7 +476,7 @@ class MySQLObject extends DatabaseObject
 			// Check to see what values have changed.  If this is a new record, only set the values that are not empty;
 			if ($this->__isNew === true) {
 
-				if (!empty($this->__attributeValues[$attribute]) || strlen($this->__attributeValues[$attribute]) > 0) {
+				if (!empty($this->__attributeValues[$attribute]) || strlen((string)$this->__attributeValues[$attribute]) > 0) {
 					$set[] = '`'.$attribute.'`='.self::packValue($value, $type);
 				}
 				else if ($attribute == 'time_created') {
@@ -497,8 +497,9 @@ class MySQLObject extends DatabaseObject
 					continue;
 				}
 				else if ($chedksumValue != $this->__attributeChecksum[$attribute]) {
-					$set[] = '`'.$attribute.'`='.self::packValue($value, $type);
-					$newChecksumValues[$attribute] = $md5;
+					$newPackedValue = (string)self::packValue($value, $type);
+					$set[] = '`'.$attribute.'`='.$newPackedValue;
+					$newChecksumValues[$attribute] = md5($newPackedValue);
 				}
 			}
 		}
