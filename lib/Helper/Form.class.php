@@ -344,7 +344,7 @@ class Form
 		$s = array();
 		$s[] = '<form';
 		$s[] = ' name="';
-		$s[] = urlencode($this->name);
+		$s[] = urlencode((string)$this->name);
 		$s[] = '"';
 		$s[] = ' action="';
 		$s[] = $this->action;
@@ -422,8 +422,8 @@ class Form
 		self::updateFormHash($name);
 		$s = array();
 		$s[] = '<input type="'.$type.'"';
-		$s[] = ' name="'.urlencode($this->name).'['.urlencode($name).']"';
-		$s[] = ' id="'.urlencode($name).'"';
+		$s[] = ' name="'.urlencode((string)$this->name).'['.urlencode((string)$name).']"';
+		$s[] = ' id="'.urlencode((string)$name).'"';
 
 		return $s;
 	}
@@ -445,10 +445,10 @@ class Form
 		$s = self::input($name, 'hidden');
 		$s[] = ' value="';
 		if($value === null && isset($this->formValues->{$name})) {
-			$s[] = urlencode($this->formValues->{$name});
+			$s[] = urlencode((string)$this->formValues->{$name});
 		}
 		else {
-			$s[] = urlencode($value);
+			$s[] = urlencode((string)$value);
 		}
 		$s[] = '"';
 		$s[] = ' '.$additionalAttributes;
@@ -556,7 +556,7 @@ class Form
 			$s[] = preg_replace('/\"/', '&quot;', $this->formValues->{$name});
 		}
 		else {
-			$s[] = preg_replace('/\"/', '&quot;', $value);
+			$s[] = preg_replace('/\"/', '&quot;', (string)$value);
 		}
 		$s[] = '"';
 		$s[] = ' '.$additionalAttributes;
@@ -581,7 +581,7 @@ class Form
 	public function inputCheckbox($name, $value='1', $additionalAttributes=null)
 	{
 		$s = self::input($name, 'checkbox');
-		$s[] = ' value="'.urlencode($value).'"';
+		$s[] = ' value="'.urlencode((string)$value).'"';
 		if(isset($this->formValues->{$name}) && (boolean)$this->formValues->{$name} === true) {
 			$s[] = ' checked="checked"';
 		}
@@ -606,7 +606,7 @@ class Form
 	public function inputRadio($name, $value, $additionalAttributes=null)
 	{
 		$s = self::input($name, 'radio');
-		$s[] = ' value="'.urlencode($value).'"';
+		$s[] = ' value="'.urlencode((string)$value).'"';
 		if(isset($this->formValues->{$name}) && $this->formValues->{$name} === $value) {
 			$s[] = ' checked="checked"';
 		}
@@ -658,8 +658,8 @@ class Form
 
 		$s = array();
 		$s[] = '<textarea';
-		$s[] = ' name="'.urlencode($this->name).'['.urlencode($name).']"';
-		$s[] = ' id="'.urlencode($name).'"';
+		$s[] = ' name="'.urlencode((string)$this->name).'['.urlencode((string)$name).']"';
+		$s[] = ' id="'.urlencode((string)$name).'"';
 		$s[] = ' '.$additionalAttributes;
 		$s[] = '>';
 		if($value === null && isset($this->formValues->{$name})) {
@@ -691,8 +691,8 @@ class Form
 
 		$s = array();
 		$s[] = '<select';
-		$s[] = ' name="'.urlencode($this->name).'['.urlencode($name).']"';
-		$s[] = ' id="'.urlencode($name).'"';
+		$s[] = ' name="'.urlencode((string)$this->name).'['.urlencode((string)$name).']"';
+		$s[] = ' id="'.urlencode((string)$name).'"';
 		$s[] = ' '.$additionalAttributes;
 		$s[] = '>';
 
@@ -727,7 +727,7 @@ class Form
 		}
 		foreach($options as $key => $value) {
 			$s[] = "\n    ";
-			$s[] = '<option value="'.urlencode($key).'"';
+			$s[] = '<option value="'.urlencode((string)$key).'"';
 			if($selected === $key) {
 				$s[] = ' selected="selected"';
 			}
@@ -775,7 +775,7 @@ class Form
 			foreach($valueList as $value => $label) {
 				$s[] = "\n        ";
 				$s[] = '<option';
-				$s[] = ' value="'.urlencode($value).'"';
+				$s[] = ' value="'.urlencode((string)$value).'"';
 				if($selected === $value) {
 					$s[] = ' selected="selected"';
 				}
