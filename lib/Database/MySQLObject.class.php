@@ -113,6 +113,11 @@ class MySQLObject extends DatabaseObject
 		}
 		else {
 			foreach ($this->__attributeList as $attribute => $type) {
+				// Ensure the default value is set
+				$this->__attributeDefaults[$attribute] = (!isset($this->__attributeDefaults[$attribute]))
+					? null
+					: $this->__attributeDefaults[$attribute];
+
 				$this->__attributeValues[$attribute] = self::unpackValue(
 					 ($this->__attributeDefaults[$attribute] !== null) ? base64_decode($this->__attributeDefaults[$attribute]) : null
 					,$this->__attributeList[$attribute]
@@ -488,7 +493,7 @@ class MySQLObject extends DatabaseObject
 			}
 			else {
 				$packedValue = self::packValue($this->__attributeValues[$attribute], $this->__attributeList[$attribute], false);
-				$chedksumValue = (!is_null($packedValue) ? md5($packedValue) : null);
+				$checksumValue = (!is_null($packedValue) ? md5($packedValue) : null);
 
 				if ($attribute == 'time_modified') {
 					$set[] = '`time_modified`=NOW()';
@@ -496,7 +501,7 @@ class MySQLObject extends DatabaseObject
 				else if ($attribute == 'time_created') {
 					continue;
 				}
-				else if ($chedksumValue != $this->__attributeChecksum[$attribute]) {
+				else if (!isset($this->__attributeChecksum[$attribute]) || $checksumValue != $this->__attributeChecksum[$attribute]) {
 					$newPackedValue = (string)self::packValue($value, $type);
 					$set[] = '`'.$attribute.'`='.$newPackedValue;
 					$newChecksumValues[$attribute] = md5($newPackedValue);
