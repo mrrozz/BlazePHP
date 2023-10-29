@@ -102,7 +102,7 @@ abstract class initCLI_common
 			}
 		}
 		catch(\Exception $e) {
-			$cli->error(
+			M::error(
 				 'The log file name ['.$logFileName.'] is invalid.  Please verify the location and permissions.'
 				."\n\n".' Error: '.$e->getMessage()
 			);
