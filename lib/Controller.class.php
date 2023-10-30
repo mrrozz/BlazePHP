@@ -169,6 +169,10 @@ abstract class Controller extends ControllerAPI
 		return $this->processFile('view', $file, true);
 	}
 
+	public function renderWidgetReturn($file) {
+		return $this->processFile('view-widget', $file, true);
+	}
+
 	private function processFile($type, $file, $returnContent)
 	{
 		switch($type) {
@@ -185,6 +189,11 @@ abstract class Controller extends ControllerAPI
 			case 'view-element':
 				$fileDir   = 'view-element';
 				$extention = 'element';
+				break;
+
+			case 'view-widget':
+				$fileDir   = 'view-widget';
+				$extention = 'widget';
 				break;
 		}
 		$fileLoc = MODULE_ROOT.'/'.$fileDir.'/'.$file.'.'.$extention.'.php';
