@@ -165,6 +165,18 @@ abstract class Controller extends ControllerAPI
 		return $this->processFile('view', $file, false);
 	}
 
+	public function renderViewXML($file)
+	{
+		header('Content-Type: application/xml');
+		return $this->processFile('view', $file, false);
+	}
+
+	public function renderViewTXT($file)
+	{
+		header('Content-Type: text/plain');
+		return $this->processFile('view', $file, false);
+	}
+
 	public function renderViewReturn($file) {
 		return $this->processFile('view', $file, true);
 	}
