@@ -23,6 +23,7 @@ use BlazeTest\TestCase;
 
 
 $_REQUEST['__requested_path'] = 'myController/myAction/id:202/list:34/order:asc';
+$_REQUEST['__requested_path'] = '/';
 G::$request = new Request();
 
 class _Route extends \BlazePHP\Route
@@ -32,6 +33,16 @@ class _Route extends \BlazePHP\Route
 		// %i - the argument is treated as an unsigned integer
 		// %s - the argument is treated as and presented as a string matching the following pattern '[a-zA-Z0-9_\-\.]'.
 
+		// SEO Canonical Testing
+		$this->alias('/Public/landing', '/site-home');
+		$this->alias('/Public/landing', '/follow-me-home');
+		$this->alias('/Public/landing', '/home-is-where-the-heart-is');
+		$this->alias('/Public/landing', '/', self::SEO_CANONICAL);
+
+		$this->alias('/Public/articles', '/articles');
+		$this->alias('/Public/articles', '/news-and-information', self::SEO_CANONICAL);
+
+		$this->alias('/mycontroller/myaction',                 '/myController/myAction');
 		$this->alias('/mycontroller/myaction/id:$i1',          '/myAlias/%i');
 		$this->alias('/mycontroller/myaction/id:$i1/form:$i2', '/myAlias/%i/%i');
 		$this->alias('/blog/view/article:$s1/mode:$s2',        '/blog/%s/%s');
@@ -44,14 +55,6 @@ class _Route extends \BlazePHP\Route
 
 final class RouteTest extends TestCase
 {
-	// public function testXXX()
-	// {
-	// 	$_REQUEST['__requested_path'] = 'manage/setIcon/gallery/B/business_card_holder_7_Edit_jpg.jpeg';
-	// 	G::$request = new Request();
-	// 	$route      = new Route();
-	// 	D::printre($route);
-	// }
-
 	public function testInstanceCreates()
 	{
 		$this->assertInstanceOf(_Route::class, new _Route());
@@ -59,18 +62,27 @@ final class RouteTest extends TestCase
 
 	public function testGetController()
 	{
+		$_REQUEST['__requested_path'] = 'myController/myAction/id:202/list:34/order:asc';
+		G::$request = new Request();
+
 		$route = new _Route();
 		$this->assertTrue('mycontroller' === $route->getController());
 	}
 
 	public function testGetAction()
 	{
+		$_REQUEST['__requested_path'] = 'myController/myAction/id:202/list:34/order:asc';
+		G::$request = new Request();
+
 		$route = new _Route();
 		$this->assertTrue('myaction' === $route->getAction());
 	}
 
 	public function testGetParameters()
 	{
+		$_REQUEST['__requested_path'] = 'myController/myAction/id:202/list:34/order:asc';
+		G::$request = new Request();
+
 		$route = new _Route();
 		$parameters = $route->getParameters();
 		$this->assertArray($parameters);
@@ -120,7 +132,18 @@ final class RouteTest extends TestCase
 		$this->assertValueEquals($parameters['quick'], true);
 	}
 
+	public function testSEOCanonicalNoVariables()
+	{
+		$_REQUEST['__requested_path'] = '/articles';
+		G::$request = new Request();
+		$route = new _Route();
+		$this->assertTrue('/news-and-information' === $route->getCanonicalPath());
 
+		$_REQUEST['__requested_path'] = '/site-home';
+		G::$request = new Request();
+		$route = new _Route();
+		$this->assertTrue('/' === $route->getCanonicalPath());
+	}
 
 
 

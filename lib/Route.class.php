@@ -26,17 +26,24 @@ use BlazePHP\Debug   as D;
  */
 class Route extends Struct
 {
-	protected $pathOriginal = null;
-	protected $path = null;
-	protected $aliases = array();
+	// SEO Routing
+	const SEO_CANONICAL     = 'seo_canonical';
+	const SEO_NO_INDEX      = 'seo_no_index';
+	const SEO_USE_PERMALINK = 'seo_use_permalink';
+
+	protected $pathOriginal      = null;
+	protected $path              = null;
+	protected $pathCanonical     = null;
+	protected $pathCanonicalList = array();
+	protected $aliaseList        = array();
 	protected $controller;
 	protected $action;
-	protected $parameters = array();
+	protected $parameters        = array();
 
 	public function __construct()
 	{
 		$this->pathOriginal = G::$request->getRequestedPath();
-		$this->path = $this->translate($this->pathOriginal);
+		list($this->path, $this->pathCanonical) = $this->translate($this->pathOriginal);
 		$this->parse();
 	}
 
@@ -55,10 +62,13 @@ class Route extends Struct
 		return $this->parameters;
 	}
 
+	public function getCanonicalPath()
+	{
+		return $this->pathCanonical;
+	}
+
 	public function translate($path)
 	{
-		// $debug = ($path == '/xxx/222');
-		// D::console($path);
 		$search = array(
 			 '/^\%i$/'
 			,'/^\%s$/'
@@ -68,7 +78,7 @@ class Route extends Struct
 			,'[a-zA-Z0-9\-\.\%\@_\=\s]+'
 		);
 		$regexAliases = array();
-		foreach($this->aliases as $alias => $route) {
+		foreach($this->aliaseList as $alias => $route) {
 			$parts      = explode('/', $alias);
 			$regexParts = array();
 
@@ -94,14 +104,11 @@ class Route extends Struct
 		$path = preg_replace('/^\//', '', $path);
 		$pathParts = explode('/', $path);
 
-		// if($debug === true) {D::console(array($path, $pathParts));}
-
 		$matches = array();
 		foreach($regexAliases as $alias => $conf) {
 
 			$match = true;
 			$i = 0;
-			// if($debug === true) {D::console(array($conf));}
 			foreach($conf['regex'] as $pattern) {
 				if(!isset($pathParts[$i])) {
 					$match = false;
@@ -118,12 +125,9 @@ class Route extends Struct
 				}
 			}
 			if($match === true) {
-				// if($debug === true) {D::console(array($pattern));}
 				$matches[$i] = $alias;
 			}
 		}
-
-		// if($debug === true) {D::console(array($path, $pathParts, $matches));}
 
 		if(count($matches) <= 0) {
 			return $path;
@@ -153,7 +157,7 @@ class Route extends Struct
 			$parameterValues[$type][] = $pathPart;
 		}
 
-		$realPath = $this->aliases[$aliasMatch];
+		$realPath = $this->aliaseList[$aliasMatch];
 
 		$v = (isset($parameterValues['integer'])) ? count($parameterValues['integer']) : 0;
 		for($i=1; $i<=$v; $i++) {
@@ -164,11 +168,13 @@ class Route extends Struct
 			$realPath = preg_replace('/\$s'.$i.'/', $parameterValues['string'][$i-1], $realPath);
 		}
 
+		$canonicalPath = (isset($this->pathCanonicalList[$realPath])) ? $this->pathCanonicalList[$realPath] : null;
+
 		if(count($pathParts) > 0) {
 			$realPath .= '/'.implode('/', $pathParts);
 		}
 
-		return $realPath;
+		return [$realPath, $canonicalPath];
 	}
 
 
@@ -209,8 +215,17 @@ class Route extends Struct
 		}
 	}
 
-	public function alias($path, $alias)
+	public function alias($path, $alias, $seoType=self::SEO_NO_INDEX)
 	{
-		$this->aliases[$alias] = $path;
+		$this->aliaseList[$alias] = $path;
+
+		if($seoType === self::SEO_CANONICAL) {
+			$this->pathCanonicalList[$path] = $alias;
+		}
+
+
+		// 	 'path' => $path
+		// 	,'seo'  => $seoType
+		// ];
 	}
 }
