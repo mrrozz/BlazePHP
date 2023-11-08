@@ -42,11 +42,18 @@ class _Route extends \BlazePHP\Route
 		$this->alias('/Public/articles', '/articles');
 		$this->alias('/Public/articles', '/news-and-information', self::SEO_CANONICAL);
 
+		$this->alias('/Public/unsubscribe', '/unsubscribe');
+
 		$this->alias('/mycontroller/myaction',                 '/myController/myAction');
 		$this->alias('/mycontroller/myaction/id:$i1',          '/myAlias/%i');
 		$this->alias('/mycontroller/myaction/id:$i1/form:$i2', '/myAlias/%i/%i');
 		$this->alias('/blog/view/article:$s1/mode:$s2',        '/blog/%s/%s');
 		$this->alias('/blog/view/article:$s1',                 '/blog/%s');
+
+		$this->noIndex('/unsubscribe');
+		$this->noIndex('/unsubscribe/');
+		$this->noIndex('/login');
+		$this->noIndex('/login/');
 
 		parent::__construct();
 	}
@@ -145,6 +152,16 @@ final class RouteTest extends TestCase
 		$this->assertTrue('/' === $route->getCanonicalPath());
 	}
 
+	public function testSEONoIndexPath()
+	{
+		$_REQUEST['__requested_path'] = '/unsubscribe';
+		G::$request = new Request();
 
+		$route = new _Route();
+		$this->assertTrue(in_array('/unsubscribe',$route->getNoIndexList()));
+		$this->assertTrue(in_array('/unsubscribe/',$route->getNoIndexList()));
+		$this->assertTrue(in_array('/login',$route->getNoIndexList()));
+		$this->assertTrue(in_array('/login/',$route->getNoIndexList()));
+	}
 
 }

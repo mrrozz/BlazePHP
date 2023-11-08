@@ -34,11 +34,12 @@ class Route extends Struct
 	protected $pathOriginal      = null;
 	protected $path              = null;
 	protected $pathCanonical     = null;
-	protected $pathCanonicalList = array();
-	protected $aliaseList        = array();
+	protected $pathCanonicalList = [];
+	protected $pathNoIndexList   = [];
+	protected $aliaseList        = [];
 	protected $controller;
 	protected $action;
-	protected $parameters        = array();
+	protected $parameters        = [];
 
 	public function __construct()
 	{
@@ -67,6 +68,11 @@ class Route extends Struct
 		return $this->pathCanonical;
 	}
 
+	public function getNoIndexList()
+	{
+		return $this->pathNoIndexList;
+	}
+
 	public function translate($path)
 	{
 		$search = array(
@@ -77,10 +83,10 @@ class Route extends Struct
 			 '[0-9]+'
 			,'[a-zA-Z0-9\-\.\%\@_\=\s]+'
 		);
-		$regexAliases = array();
+		$regexAliases = [];
 		foreach($this->aliaseList as $alias => $route) {
 			$parts      = explode('/', $alias);
-			$regexParts = array();
+			$regexParts = [];
 
 			// Check for /
 			if(count($parts) == 1 && empty($parts[0])) {
@@ -104,7 +110,7 @@ class Route extends Struct
 		$path = preg_replace('/^\//', '', $path);
 		$pathParts = explode('/', $path);
 
-		$matches = array();
+		$matches = [];
 		foreach($regexAliases as $alias => $conf) {
 
 			$match = true;
@@ -215,17 +221,20 @@ class Route extends Struct
 		}
 	}
 
-	public function alias($path, $alias, $seoType=self::SEO_NO_INDEX)
+	public function alias($path, $alias, $seoType=null)
 	{
 		$this->aliaseList[$alias] = $path;
 
 		if($seoType === self::SEO_CANONICAL) {
 			$this->pathCanonicalList[$path] = $alias;
 		}
+	}
 
-
-		// 	 'path' => $path
-		// 	,'seo'  => $seoType
-		// ];
+	public function noIndex($alias)
+	{
+		$alias = trim($alias);
+		if(!in_array($alias, $this->pathNoIndexList)) {
+			$this->pathNoIndexList[] = $alias;
+		}
 	}
 }
