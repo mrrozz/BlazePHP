@@ -417,13 +417,15 @@ class Form
 	 * @param $type - Type of the input tag: type="$type"
 	 * @return - string
 	 */
-	private function input($name, $type)
+	private function input($name, $type, $id=null)
 	{
 		self::updateFormHash($name);
 		$s = array();
 		$s[] = '<input type="'.$type.'"';
 		$s[] = ' name="'.urlencode((string)$this->name).'['.urlencode((string)$name).']"';
-		$s[] = ' id="'.urlencode((string)$name).'"';
+
+		$id = (empty($id)) ? urlencode((string)$name) : urlencode((string)$id);
+		$s[] = ' id="'.$id.'"';
 
 		return $s;
 	}
@@ -605,7 +607,7 @@ class Form
 	 */
 	public function inputRadio($name, $value, $additionalAttributes=null)
 	{
-		$s = self::input($name, 'radio');
+		$s = self::input($name, 'radio', $name.$value);
 		$s[] = ' value="'.urlencode((string)$value).'"';
 		if(isset($this->formValues->{$name}) && $this->formValues->{$name} === $value) {
 			$s[] = ' checked="checked"';
