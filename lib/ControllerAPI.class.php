@@ -53,6 +53,13 @@ abstract class ControllerAPI extends Struct
 		exit;
 	}
 
+	protected function redirectPerm($destination)
+	{
+		header('HTTP/1.1 301 Found');
+		header('Location: ' . $destination);
+		exit;
+	}
+
 	public function renderJSON($output)
 	{
 		header('Content-Type: application/json');

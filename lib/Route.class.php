@@ -63,6 +63,11 @@ class Route extends Struct
 		return $this->parameters;
 	}
 
+	public function getOriginalPath()
+	{
+		return $this->pathOriginal;
+	}
+
 	public function getCanonicalPath()
 	{
 		return $this->pathCanonical;
