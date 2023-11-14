@@ -139,6 +139,7 @@ class Network
 			,CURLINFO_HEADER_OUT          => 0
 			,CURLOPT_NETRC                => 1
 			,CURLOPT_FAILONERROR          => false
+			,CURLOPT_HTTP_VERSION         => $p->httpVersion
 			,CURLOPT_CONNECTTIMEOUT       => $p->timeout
 		);
 
@@ -425,6 +426,8 @@ abstract class RequestParameters extends Struct
 	public $verifySSLCert = false;
 	public $authUsername  = null;
 	public $authPassword  = null;
+
+	public $httpVersion   = CURL_HTTP_VERSION_NONE;
 
 	public $debug         = false;
 
