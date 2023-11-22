@@ -15,6 +15,7 @@
  */
 namespace BlazePHP\Session;
 use BlazePHP\Session as S;
+use BlazePHP\Debug as D;
 
 /**
  * Runtime
@@ -49,6 +50,11 @@ class LocalPHP
 		session_start();
 		$_SESSION[$key] = $value;
 		session_write_close();
+	}
+
+	public function __isset($key)
+	{
+		return isset($_SESSION[$key]);
 	}
 
 	public function URLToken()

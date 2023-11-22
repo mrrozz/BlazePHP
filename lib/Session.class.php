@@ -65,6 +65,11 @@ class Session extends Struct
 		$this->session->{$key} = $value;
 	}
 
+	public function __isset($key)
+	{
+		return isset($this->session->{$key});
+	}
+
 	public function URLToken()
 	{
 		return $this->session->URLToken();
