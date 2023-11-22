@@ -57,7 +57,7 @@ if(!file_exists(dirname(__DIR__).'/module/mod-'.O::$moduleName.'/controller')) {
 	exit;
 }
 
-M::send('MSG: Gathering the list of controllers: ', M::LEVEL_0, M::ADD_NEW_LINE);
+M::send('MSG: Gathering the list of controllers: ', M::LEVEL_1, M::ADD_NEW_LINE);
 
 
 $fileList      = array();
@@ -69,7 +69,7 @@ while($controller = readdir($controllerListHandle)) {
 		continue;
 	}
 
-	M::send('MSG: Processing module ['.$controller.']', M::LEVEL_0, M::NO_NEW_LINE);
+	M::send('MSG: Processing module ['.$controller.']', M::LEVEL_1, M::NO_NEW_LINE);
 
 	$className = str_replace('.ctlr.php', '', $controller).'CTLR';
 	$routeName = strtolower(str_replace('.ctlr.php', '', $controller));
@@ -78,11 +78,11 @@ while($controller = readdir($controllerListHandle)) {
 		,'className' => $className
 	);
 
-	M::send(' SUCCESS', M::LEVEL_0, M::ADD_NEW_LINE, 'green');
+	M::send(' SUCCESS', M::LEVEL_1, M::ADD_NEW_LINE, 'green');
 }
 
 
-M::send('MSG: Writing '.count($mapList).' map(s) to file ['.$controllerDir.']', M::LEVEL_0, M::NO_NEW_LINE);
+M::send('MSG: Writing '.count($mapList).' map(s) to file ['.$controllerDir.']', M::LEVEL_1, M::NO_NEW_LINE);
 
 $mapListText = array();
 foreach($mapList as $mapName => $info) {
@@ -123,4 +123,4 @@ $mapHandle = fopen($controllerDir.'/controller.map.php', 'w');
 $content = implode("\n", $content);
 fwrite($mapHandle, $content, strlen($content));
 
-M::send(' SUCCESS', M::LEVEL_0, M::ADD_NEW_LINE, 'green');
+M::send(' SUCCESS', M::LEVEL_1, M::ADD_NEW_LINE, 'green');
