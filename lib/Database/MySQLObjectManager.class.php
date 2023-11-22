@@ -138,7 +138,7 @@ class MySQLObjectManager
 			$sql[] = '`'.implode('`, `', array_merge($pkFields, $fields)).'`';
 		}
 		$sql[] = 'FROM';
-		$sql[] = $this->dbTableName;
+		$sql[] = '`'.$this->dbTableName.'`';
 		$sql[] = ($conditions !== null) ? $conditions  : '';
 		if(!is_null($count) && (integer)$count > 0) {
 			$sql[] = 'LIMIT';
