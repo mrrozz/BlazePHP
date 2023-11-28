@@ -727,10 +727,11 @@ class Form
 		if($selected === null && isset($this->formValues->{$name})) {
 			$selected = $this->formValues->{$name};
 		}
+		// D::printre([$selected, $options]);
 		foreach($options as $key => $value) {
 			$s[] = "\n    ";
 			$s[] = '<option value="'.urlencode((string)$key).'"';
-			if($selected === $key) {
+			if($selected == $key) {
 				$s[] = ' selected="selected"';
 			}
 			$s[] = '>';
@@ -778,7 +779,7 @@ class Form
 				$s[] = "\n        ";
 				$s[] = '<option';
 				$s[] = ' value="'.urlencode((string)$value).'"';
-				if($selected === $value) {
+				if($selected == $value) {
 					$s[] = ' selected="selected"';
 				}
 				$s[] = '>';
