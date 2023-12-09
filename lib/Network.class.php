@@ -172,6 +172,10 @@ class Network
 			$options[CURLOPT_USERPWD] = $p->authUsername.':'.$p->authPassword;
 		}
 
+		if(!empty($p->port)) {
+			$options[CURLOPT_PORT] = $p->port;
+		}
+
 
 		if($p->debug === true) {
 			$options[CURLOPT_VERBOSE] = true;
@@ -421,6 +425,7 @@ class Network
 abstract class RequestParameters extends Struct
 {
 	public $URL           = null;
+	public $port          = null;
 	public $responseJSON  = true;
 	public $returnInfo    = false;
 	public $verifySSLCert = false;

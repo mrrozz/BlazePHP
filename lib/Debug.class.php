@@ -32,6 +32,7 @@ if (G::$debug === true) {
 
 	class Debug
 	{
+		const ISOLATE = 1;
 		public static $timer;
 
 		/**
@@ -43,6 +44,11 @@ if (G::$debug === true) {
 		 * @param port Any valid port that the server is listening to
 		 *
 		 */
+		public static function consoleIsolated($switch, $data, $showBacktrace = false, $port = 8000) {
+			if($switch === self::ISOLATE) {
+				self::console($data, $showBacktrace, $port);
+			}
+		}
 		public static function console($data, $showBacktrace = false, $port = 8000)
 		{
 			if (!G::$debug) {

@@ -36,7 +36,7 @@ class MySQLObject extends DatabaseObject
 	protected $__attributePack;
 	protected $__attributeUnPack;
 
-	//protected static $__dbConnectionName;
+	protected static $__dbConnectionName;
 	//protected static $__dbTableName;
 	//protected static $__idType = BLAZE_OBJECT_ID_AUTO; // BLAZE_OBJECT_ID_TYPE_AUTO || BLAZE_OBJECT_ID_GUID
 
@@ -523,7 +523,9 @@ class MySQLObject extends DatabaseObject
 			else {
 				$sql = 'UPDATE `'.$this::$__dbTableName.'` SET '.implode(', ', $set).' WHERE `id`='.$this->id;
 			}
-
+			if($debug === true) {
+				D::printre($sql);
+			}
 			if (false === $this->__dbMaster->query($sql)) {
 				throw new \Exception(
 					__CLASS__.'::'.__FUNCTION__.' - '.$this->__dbMaster->error

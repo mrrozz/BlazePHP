@@ -36,14 +36,14 @@ class Session extends Struct
 	const STATUS_NONE     = 'NONE';
 	const STATUS_DISABLED = 'DISABLED';
 
-	public function __construct()
+	public function __construct($name='blazephp_sid', $lifetime=(10 * 365 * 8640)/* 10 years */)
 	{
 		$type = (isset(G::$env->sessionType)) ? G::$env->sessionType : null;
 
 		switch($type) {
 
 			default;
-				$this->session = new Session\LocalPHP();
+				$this->session = new Session\LocalPHP($name, $lifetime);
 				break;
 		}
 
@@ -63,6 +63,11 @@ class Session extends Struct
 	public function __set($key, $value)
 	{
 		$this->session->{$key} = $value;
+	}
+
+	public function all()
+	{
+		return $this->session->all();
 	}
 
 	public function __isset($key)

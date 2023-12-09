@@ -16,6 +16,7 @@
 namespace BlazePHP;
 use BlazePHP\Globals as G;
 use BlazePHP\Debug   as D;
+use BlazePHP\Session;
 
 /**
  * Globals
@@ -80,6 +81,7 @@ class Route extends Struct
 
 	public function translate($path)
 	{
+		$orgPath = $path;
 		$search = array(
 			 '/^\%i$/'
 			,'/^\%s$/'
@@ -114,17 +116,25 @@ class Route extends Struct
 
 		$path = preg_replace('/^\//', '', $path);
 		$pathParts = explode('/', $path);
+		// $s=new Session();$s->D=D::ISOLATE;D::console($_SESSION);
+		// s=new Session();if($orgPath!='/favicon.ico'){D::consoleIsolated($s->D, '>'.@$pathParts[2].'<');}
 
 		$matches = [];
+		// $d = [];
+
 		foreach($regexAliases as $alias => $conf) {
 
 			$match = true;
 			$i = 0;
 			foreach($conf['regex'] as $pattern) {
+
 				if(!isset($pathParts[$i])) {
 					$match = false;
 					break;
 				}
+
+				// $line=$pattern.' | '.$pathParts[$i];
+
 				if(!preg_match($pattern, $pathParts[$i])) {
 					$match = false;
 				}
@@ -132,13 +142,18 @@ class Route extends Struct
 				$i++;
 
 				if($match === false) {
+					// $d[] = $line.' [NO MATCH]';
 					break;
 				}
+				// $d[] =  $line.'[______MATCH FOUND______]';
 			}
 			if($match === true) {
-				$matches[$i] = $alias;
+				$matches[] = $alias;
 			}
 		}
+
+		// $s=new Session();if($orgPath!='/favicon.ico'){D::consoleIsolated($s->D, $d);}
+		// $s=new Session();if($orgPath!='/favicon.ico'){D::consoleIsolated($s->D, $matches);}
 
 		if(count($matches) <= 0) {
 			return $path;

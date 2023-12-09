@@ -1,4 +1,5 @@
 .DS_Store
+.zephir
 tmp-dev
 module/mod-*
 module/object.map.php

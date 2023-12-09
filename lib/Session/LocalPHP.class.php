@@ -28,8 +28,16 @@ class LocalPHP
 {
 	private $status;
 
-	public function __construct()
+	public function __construct($name, $lifetime)
 	{
+		session_set_cookie_params([
+			 'lifetime' => $lifetime
+ 			,'path' => '/'
+			,'domain' => $_SERVER['HTTP_HOST']
+			,'httponly' => true
+		]);
+
+		session_name($name);
 		session_start();
 		$this->status = session_status();
 		session_write_close();
@@ -55,6 +63,11 @@ class LocalPHP
 	public function __isset($key)
 	{
 		return isset($_SESSION[$key]);
+	}
+
+	public function all()
+	{
+		return $_SESSION;
 	}
 
 	public function URLToken()
