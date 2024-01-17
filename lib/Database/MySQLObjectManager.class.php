@@ -100,7 +100,7 @@ class MySQLObjectManager
 		$sql[] = '      `'.$this->dbTableName.'`';
 		$sql[] = ($mlo->conditions !== null) ? $mlo->conditions  : '';
 		if($mlo->dumpSQL) {
-			printre(implode("\n", $sql));
+			\BlazePHP\Debug::console(implode("\n", $sql));
 		}
 
 		try {
@@ -145,7 +145,7 @@ class MySQLObjectManager
 			$sql[] = (string)(integer)$start.', '.(string)$count;
 		}
 		if($dumpSQL === true) {
-			\BlazePHP\Debug::printre(implode("\n", $sql));
+			\BlazePHP\Debug::console(implode("\n", $sql), true);
 		}
 
 		try {

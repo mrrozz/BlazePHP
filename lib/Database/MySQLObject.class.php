@@ -29,7 +29,7 @@ use \BlazePHP\Debug   as D;
 class MySQLObject extends DatabaseObject
 {
 	protected $__attributeValues;
-	protected $__attributeChecksum;   // Holds a checksum of the original data per attribute
+	protected $__attributeChecksum = [];   // Holds a checksum of the original data per attribute
 	protected $__attributeList;       // Each attribute requires a type to handle pre and post processing for read/writes
 	protected $__attributeDefaults;
 	protected $__attributeValidation;
@@ -90,11 +90,28 @@ class MySQLObject extends DatabaseObject
 
 		if ((integer)$id > 0) {
 			$result = $this->__dbSlave->query('SELECT * FROM `'.$this::$__dbTableName.'` WHERE `id`='.$id);
+			// D::console('SELECT * FROM `'.$this::$__dbTableName.'` WHERE `id`='.$id);
 			if ($result->num_rows > 0) {
 				$row = $result->fetch_assoc();
 				foreach ($row as $attribute => $value) {
-					$this->__attributeChecksum[$attribute] = (!is_null($value) ? md5($value) : NULL);
-					$this->__attributeValues[$attribute] = self::unpackValue($value, $this->__attributeList[$attribute]);
+					$type          = $this->__attributeList[$attribute];
+					/*
+					 * To ensure that the checksum is created on the same value,
+					 * take the following steps when pulling the data from the source.
+					 */
+					// 1: Unpack the data from teh database, ready for use in app
+					$valueUnpacked = self::unpackValue($value, $type);
+					// 2: Repack the data as it comes from the object.
+					$valuePacked   = self::packValue($valueUnpacked, $type, false);
+					$this->__attributeChecksum[$attribute] = (!is_null($valuePacked) ? md5($valuePacked) : NULL);
+					$this->__attributeValues[$attribute]   = $valueUnpacked;
+
+					// D::console([
+					// 	 $attribute
+					// 	,$value
+					// 	,$valuePacked
+					// 	,$valueUnpacked
+					// ]);
 				}
 				$this->__isNew = false;
 			}
@@ -226,7 +243,6 @@ class MySQLObject extends DatabaseObject
 		$verdict = false;
 		if ($object) {
 			$objectAttributes = get_object_vars($object);
-			//$validAttributes = array_diff(array_keys($this->__attributeList), array('id'));
 			$validAttributes = array_keys($this->__attributeList);
 
 			foreach ($objectAttributes as $name => $value) {
@@ -234,7 +250,9 @@ class MySQLObject extends DatabaseObject
 					$this->{$name} = self::unpackValue($value, $this->__attributeList[$name]);
 
 					if($setChecksum === true) {
-						$this->__attributeChecksum[$name] = (!is_null($value) ? md5($value) : NULL);
+						$type          = $this->__attributeList[$name];
+						$valuePacked   = self::packValue($value, $type, false);
+						$this->__attributeChecksum[$name] = (!is_null($valuePacked) ? md5($valuePacked) : NULL);
 					}
 				}
 				else {
@@ -498,10 +516,18 @@ class MySQLObject extends DatabaseObject
 				if ($attribute == 'time_modified') {
 					$set[] = '`time_modified`=NOW()';
 				}
-				else if ($attribute == 'time_created') {
+				else if ($attribute == 'time_created' || $attribute == 'id_md5') {
 					continue;
 				}
-				else if (!isset($this->__attributeChecksum[$attribute]) || $checksumValue != $this->__attributeChecksum[$attribute]) {
+				else if (!array_key_exists($attribute, $this->__attributeChecksum) || $checksumValue != $this->__attributeChecksum[$attribute]) {
+
+					// D::console([
+					// 	 $attribute
+					// 	,$packedValue
+					// 	,$checksumValue
+					// 	,$this->__attributeChecksum[$attribute]
+					// ]);
+
 					$newPackedValue = (string)self::packValue($value, $type);
 					$set[] = '`'.$attribute.'`='.$newPackedValue;
 					$newChecksumValues[$attribute] = md5($newPackedValue);
@@ -524,7 +550,7 @@ class MySQLObject extends DatabaseObject
 				$sql = 'UPDATE `'.$this::$__dbTableName.'` SET '.implode(', ', $set).' WHERE `id`='.$this->id;
 			}
 			if($debug === true) {
-				D::printre($sql);
+				D::console($sql);
 			}
 			if (false === $this->__dbMaster->query($sql)) {
 				throw new \Exception(
@@ -615,7 +641,7 @@ class MySQLObject extends DatabaseObject
 		else if ($type == 'integer') {
 			return (integer)$value;
 		}
-		else if ($type == 'double') {
+		else if ($type == 'double' || $type == 'decimal') {
 			return (double)$value;
 		}
 		else if ($type == 'float') {
@@ -659,7 +685,11 @@ class MySQLObject extends DatabaseObject
 				$value = new \DateTime((string)$value);
 			}
 			$value->setTimezone(new \DateTimezone('UTC'));
-			$return = '\''.$value->format('Y-m-d H:i:s').'\'';
+			$return = $value->format('Y-m-d H:i:s');
+			if($forSQL) {
+				$return = '\''.$return.'\'';
+			}
+
 			$value->setTimezone(new \DateTimezone(date_default_timezone_get()));
 			return $return;
 		}
@@ -689,6 +719,9 @@ class MySQLObject extends DatabaseObject
 		}
 		else if ($type == 'boolean') {
 			return (boolean)$value;
+		}
+		else if ($type == 'decimal') {
+			return (double)$value;
 		}
 		else if ($type == 'array_as_csv') {
 			if (empty($value)) {
