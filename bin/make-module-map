@@ -16,6 +16,7 @@
  */
 namespace BlazePHP;
 use \BlazePHP\Globals as G;
+use \BlazePHP\Debug as D;
 use \BlazePHP\Message as M;
 use \BlazePHP\CLI;
 require(dirname(__DIR__).'/init/CLI.init.php');
@@ -24,7 +25,7 @@ require(dirname(__DIR__).'/init/CLI.init.php');
 G::$cli = new CLI($argc, $argv);
 
 
-
+G::$debug = true;
 
 // Initilize the CLI
 initCLI::parse(G::$cli);
@@ -67,17 +68,6 @@ while($module = readdir($moduleListHandle)) {
 		}
 	}
 
-
-	$libPath = realpath(dirname(__DIR__).'/module/'.$module.'/lib');
-	if(file_exists($libPath) && is_dir($libPath)) {
-		$directory   = new \RecursiveDirectoryIterator($libPath);
-		$iterator    = new \RecursiveIteratorIterator($directory);
-		$phpFiles    = new \RegexIterator($iterator, '/^.+\.class\.php$/i', \RecursiveRegexIterator::GET_MATCH);
-		foreach($phpFiles as $name => $nullMe) {
-			$fileList[] = $name;
-		}
-	}
-
 	$controllerPath = realpath(dirname(__DIR__).'/module/'.$module.'/controller');
 	if(file_exists($controllerPath) && is_dir($controllerPath)) {
 		$directory   = new \RecursiveDirectoryIterator($controllerPath);
@@ -88,14 +78,23 @@ while($module = readdir($moduleListHandle)) {
 		}
 	}
 
+	// $fileList = [];
+	$libPath = realpath(dirname(__DIR__).'/module/'.$module.'/lib');
+	if(file_exists($libPath) && is_dir($libPath)) {
+		$directory   = new \RecursiveDirectoryIterator($libPath);
+		$iterator    = new \RecursiveIteratorIterator($directory);
+		$phpFiles    = new \RegexIterator($iterator, '/^.+\.class\.php$/i', \RecursiveRegexIterator::GET_MATCH);
+		foreach($phpFiles as $name => $nullMe) {
+			$fileList[] = $name;
+		}
+	}
+
 	M::send(' SUCCESS', M::LEVEL_1, M::ADD_NEW_LINE, 'green');
 }
-
 
 M::send('MSG: Writing '.count($fileList).' map(s) to file [{BlazePHP_ROOT}/module/object.map.php]', M::LEVEL_1, M::NO_NEW_LINE);
 
 foreach($fileList as $name){
-	// echo "$name\n";
 	$parts        = explode('/module/', $name);
 	$fileLocation = $parts[1];
 	$parts        = explode('/', $parts[1]);
@@ -116,9 +115,8 @@ foreach($fileList as $name){
 		$moduleNamespaceParts[] = ucfirst($part);
 	}
 	$moduleNamespace = implode($moduleNamespaceParts);
-	// print_r(array($parts, $dirName));
 	if(count($parts) > 0) {
-		$namespacePath = $moduleNamespace.'\\'.implode('\\', $parts).'\\'.$class;
+		$namespacePath = $moduleNamespace.'\\'.ucfirst(strtolower($dirName)).'\\'.implode('\\', $parts).'\\'.$class;
 	}
 	elseif(!in_array($dirName, array('controller', 'model', 'manager'))) {
 		$namespacePath = $moduleNamespace.'\\'.ucfirst(strtolower($dirName)).'\\'.$class;

@@ -87,17 +87,92 @@ abstract class ControllerAPI extends Struct
 	{
 		return new APIResponse();
 	}
+
+	public function buildResponseField()
+	{
+		return new APIResponseField();
+	}
 }
 
-
-class APIResponse extends Struct
+class _APIResponse extends Struct
 {
 	public $status   = 'success';
-	public $messages = array();
 	public $data     = null;
 
 	public function __construct()
 	{
 		$this->data = new \stdClass();
+	}
+
+	public function statusIs($status)
+	{
+		return ($this->status == $status);
+	}
+
+	public function isSuccess()
+	{
+		$this->status = 'success';
+	}
+
+	public function isError()
+	{
+		$this->status = 'error';
+	}
+
+	public function isWarning()
+	{
+		$this->status = 'warning';
+	}
+}
+
+class APIResponse extends _APIResponse
+{
+
+	public $messages = array();
+
+	public function __construct()
+	{
+		parent::__construct();
+	}
+
+}
+
+class APIResponseField extends _APIResponse
+{
+	public $field          = null;
+	public $fieldType      = 'input';
+	public $validity       = 'valid';
+	public $message        = null;
+	public $value          = null;
+	public $actionRequired = null;
+
+	public function __construct()
+	{
+		parent::__construct();
+	}
+
+	public function isValid()
+	{
+		$this->validity='valid';
+	}
+
+	public function isInvalid()
+	{
+		$this->validity='invalid';
+	}
+
+	public function typeInput()
+	{
+		$this->fieldType = 'input';
+	}
+
+	public function typeSelect()
+	{
+		$this->fieldType = 'select';
+	}
+
+	public function typeTextarea()
+	{
+		$this->fieldType = 'textarea';
 	}
 }

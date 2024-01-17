@@ -22,18 +22,10 @@ use BlazePHP\Debug as D;
  */
 class ControllerValues extends Struct
 {
-	public static $variables = array();
-	public static $layout    = 'default';
-	public static $key       = null;
-	public static $value     = null;
-
-	public static function reset()
-	{
-		self::$variables = array();
-		self::$layout    = 'default';
-		self::$key       = null;
-		self::$value     = null;
-	}
+	public $variables = array();
+	public $layout    = 'default';
+	public $key       = null;
+	public $value     = null;
 }
 
 /**
@@ -45,9 +37,10 @@ class ControllerValues extends Struct
  */
 abstract class Controller extends ControllerAPI
 {
+	private $cValues;
 	public function __construct()
 	{
-		ControllerValues::reset();
+
 	}
 
 	/**
@@ -61,7 +54,10 @@ abstract class Controller extends ControllerAPI
 	 */
 	public function __get($key)
 	{
-		return (isset(ControllerValues::$variables[$key])) ? ControllerValues::$variables[$key] : null;
+		if(gettype($this->cValues) != 'object') {
+			$this->cValues = new ControllerValues();
+		}
+		return (isset($this->cValues->variables[$key])) ? $this->cValues->variables[$key] : null;
 	}
 
 
@@ -75,7 +71,10 @@ abstract class Controller extends ControllerAPI
 	 */
 	public function __set($key, $value)
 	{
-		ControllerValues::$variables[$key] = $value;
+		if(gettype($this->cValues) != 'object') {
+			$this->cValues = new ControllerValues();
+		}
+		$this->cValues->variables[$key] = $value;
 	}
 
 
@@ -94,8 +93,11 @@ abstract class Controller extends ControllerAPI
 				,' - The layout file ['.$layout.'] specified does not exist.'
 			)));
 		}
+		if(gettype($this->cValues) != 'object') {
+			$this->cValues = new ControllerValues();
+		}
 
-		ControllerValues::$layout = $layout;
+		$this->cValues->layout = $layout;
 	}
 
 
@@ -108,22 +110,22 @@ abstract class Controller extends ControllerAPI
 	private function processLayout($returnContent)
 	{
 
-		if(!file_exists(ControllerValues::$layout)) {
+		if(!file_exists($this->cValues->layout)) {
 			throw new \Exception( implode(' ', array(
 				 __CLASS__.'::'.__FUNCTION__
-				,' - The layout file ['.ControllerValues::$layout.'] does not exist'
+				,' - The layout file ['.$this->cValues->layout.'] does not exist'
 			)));
 		}
 
-		foreach(ControllerValues::$variables as ControllerValues::$key => ControllerValues::$value) {
-			${ControllerValues::$key} = ControllerValues::$value;
+		foreach($this->cValues->variables as $this->cValues->key => $this->cValues->value) {
+			${$this->cValues->key} = $this->cValues->value;
 		}
 
 		if($returnContent === true) {
 			ob_start();
 		}
 
-		include(ControllerValues::$layout);
+		include($this->cValues->layout);
 
 		if($returnContent === true) {
 			$content = ob_get_contents();
@@ -142,8 +144,8 @@ abstract class Controller extends ControllerAPI
 	 */
 	public function renderReturn()
 	{
-		// D::printre(ControllerValues::$layout);
-		return $this->processFile('view-layout', ControllerValues::$layout, true);
+		// D::printre($this->cValues->layout);
+		return $this->processFile('view-layout', $this->cValues->layout, true);
 	}
 
 	/**
@@ -151,7 +153,7 @@ abstract class Controller extends ControllerAPI
 	 */
 	public function render()
 	{
-		return $this->processFile('view-layout', ControllerValues::$layout, false);
+		return $this->processFile('view-layout', $this->cValues->layout, false);
 	}
 
 	public function renderView($file)
@@ -218,8 +220,8 @@ abstract class Controller extends ControllerAPI
 		}
 
 
-		foreach(ControllerValues::$variables as ControllerValues::$key => ControllerValues::$value) {
-			${ControllerValues::$key} = ControllerValues::$value;
+		foreach($this->cValues->variables as $this->cValues->key => $this->cValues->value) {
+			${$this->cValues->key} = $this->cValues->value;
 		}
 
 		if($returnContent === true) {

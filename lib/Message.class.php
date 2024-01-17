@@ -88,4 +88,9 @@ class Message extends Struct
 	{
 		return str_pad($message, self::$padLength, self::$padChar);
 	}
+
+	public static function getLog()
+	{
+		return G::$cli->getVerboseLog();
+	}
 }
