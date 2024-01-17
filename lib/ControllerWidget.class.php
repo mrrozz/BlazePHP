@@ -21,7 +21,6 @@ class ControllerWidget extends Controller
 {
 	public function __construct()
 	{
-		// Do not call the parent construct() method, as it wipes out the controller values
-		return;
+		parent::__construct();
 	}
 }
