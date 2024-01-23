@@ -25,6 +25,8 @@ namespace BlazePHP;
  */
 class Globals extends Struct
 {
+	const DATA_ONLY_TRUE  = true;
+	const DATA_ONLY_FALSE = false;
 	/**
 	 * Globally accessible variables
 	 */
