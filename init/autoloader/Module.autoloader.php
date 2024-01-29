@@ -14,6 +14,7 @@
  *
  */
 use \BlazePHP\Globals as G;
+use \BlazePHP\Debug as D;
 
 /**
  * Define the autoload method from the Environment object
@@ -45,13 +46,16 @@ spl_autoload_register(
 		}
 
 		if(file_exists(ABS_ROOT.'/'.$path.'.class.php')) {
-			$classLocation = ABS_ROOT.'/'.$path.'.class.php';
+			$fileLocation = ABS_ROOT.'/'.$path.'.class.php';
+		}
+		elseif(file_exists(ABS_ROOT.'/'.$path.'.trait.php')) {
+			$fileLocation = ABS_ROOT.'/'.$path.'.trait.php';
 		}
 		elseif(isset(G::$moduleMap[$className])) {
-			$classLocation = ABS_ROOT.'/module/'.G::$moduleMap[$className];
+			$fileLocation = ABS_ROOT.'/module/'.G::$moduleMap[$className];
 		}
 		elseif(isset(G::$controllerMap[$className])) {
-			$classLocation = ABS_ROOT.'/module/'.G::$controllerMap[$className];
+			$fileLocation = ABS_ROOT.'/module/'.G::$controllerMap[$className];
 		}
 		else {
 			ob_start();
@@ -64,10 +68,10 @@ spl_autoload_register(
 				.$backtrace
 			);
 		}
-		// print_r($classLocation."\n");
-		// print_r(array('include file: ', require_once($classLocation)));
+		// print_r($fileLocation."\n");
+		// print_r(array('include file: ', require_once($fileLocation)));
 		// print_r(get_declared_classes());
-		require_once($classLocation);
+		require_once($fileLocation);
 		return;
 	}
 );

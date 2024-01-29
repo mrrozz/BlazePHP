@@ -44,6 +44,7 @@ class Globals extends Struct
 	public static $routeAlias;
 	public static $session;
 	public static $autoload = array(
-		'BlazePHP:lib'  // Map all BlazePHP namespace classes to the ABS_ROOT/lib directory
+		 'BlazePHP:lib'  // Map all BlazePHP namespace classes to the ABS_ROOT/lib directory
+		,'BlazePHP:trait' // Map all BlazePHP namespace traits to the ABS_ROOT/trait directory
 	);
 }

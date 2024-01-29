@@ -89,6 +89,16 @@ while($module = readdir($moduleListHandle)) {
 		}
 	}
 
+	$traitPath = realpath(dirname(__DIR__).'/module/'.$module.'/trait');
+	if(file_exists($traitPath) && is_dir($traitPath)) {
+		$directory   = new \RecursiveDirectoryIterator($traitPath);
+		$iterator    = new \RecursiveIteratorIterator($directory);
+		$phpFiles    = new \RegexIterator($iterator, '/^.+\.trait\.php$/i', \RecursiveRegexIterator::GET_MATCH);
+		foreach($phpFiles as $name => $nullMe) {
+			$fileList[] = $name;
+		}
+	}
+
 	M::send(' SUCCESS', M::LEVEL_1, M::ADD_NEW_LINE, 'green');
 }
 
@@ -103,7 +113,7 @@ foreach($fileList as $name){
 	$module       = ucfirst($moduleParts[1]);
 	$dirName      = array_shift($parts); // purge the 'manager' directory
 	$classRaw     = array_pop($parts); // grab the class file off the end of the array
-	$class        = preg_replace('/\.(ctlr|class)\.php$/', '', $classRaw);
+	$class        = preg_replace('/\.(ctlr|class|trait)\.php$/', '', $classRaw);
 	if(preg_match('/\.ctlr\.php$/', $classRaw)) {
 		$class .= 'CTLR';
 	}
