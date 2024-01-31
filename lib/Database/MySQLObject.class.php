@@ -516,7 +516,7 @@ class MySQLObject extends DatabaseObject
 				if ($attribute == 'time_modified') {
 					$set[] = '`time_modified`=NOW()';
 				}
-				else if ($attribute == 'time_created' || $attribute == 'id_md5') {
+				else if ($attribute == 'time_created') {
 					continue;
 				}
 				else if (!array_key_exists($attribute, $this->__attributeChecksum) || $checksumValue != $this->__attributeChecksum[$attribute]) {
