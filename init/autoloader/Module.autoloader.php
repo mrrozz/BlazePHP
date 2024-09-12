@@ -45,6 +45,7 @@ spl_autoload_register(
 			$path = preg_replace($search, $replace, implode('/', $parts));
 		}
 
+		$fileLocation = '';
 		if(file_exists(ABS_ROOT.'/'.$path.'.class.php')) {
 			$fileLocation = ABS_ROOT.'/'.$path.'.class.php';
 		}
@@ -57,21 +58,23 @@ spl_autoload_register(
 		elseif(isset(G::$controllerMap[$className])) {
 			$fileLocation = ABS_ROOT.'/module/'.G::$controllerMap[$className];
 		}
-		else {
-			ob_start();
-			debug_print_backtrace();
-			$backtrace = ob_get_contents();
-			ob_clean();
-			throw new \Exception(
-				'AUTOLOADER - The class ['.$className.'] does not exist.'
-				."\n\n"
-				.$backtrace
-			);
-		}
+		// else {
+		// 	ob_start();
+		// 	debug_print_backtrace();
+		// 	$backtrace = ob_get_contents();
+		// 	ob_clean();
+		// 	throw new \Exception(
+		// 		'AUTOLOADER - The class ['.$className.'] does not exist.'
+		// 		."\n\n"
+		// 		.$backtrace
+		// 	);
+		// }
 		// print_r($fileLocation."\n");
 		// print_r(array('include file: ', require_once($fileLocation)));
 		// print_r(get_declared_classes());
-		require_once($fileLocation);
+		if(file_exists($fileLocation)) {
+			require_once($fileLocation);
+		}
 		return;
 	}
 );
