@@ -40,7 +40,9 @@ abstract class Controller extends ControllerAPI
 	private $cValues;
 	public function __construct()
 	{
-
+		if(gettype($this->cValues) != 'object') {
+			$this->cValues = new ControllerValues();
+		}
 	}
 
 	/**
@@ -54,9 +56,6 @@ abstract class Controller extends ControllerAPI
 	 */
 	public function __get($key)
 	{
-		if(gettype($this->cValues) != 'object') {
-			$this->cValues = new ControllerValues();
-		}
 		return (isset($this->cValues->variables[$key])) ? $this->cValues->variables[$key] : null;
 	}
 

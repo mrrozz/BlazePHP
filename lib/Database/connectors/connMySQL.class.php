@@ -73,6 +73,9 @@ class connMySQL extends \BlazePHP\Struct
 			$this->C = new \mysqli($this->hostname, $this->username, $this->password, $this->database);
 		}
 
+		/* Set the desired charset after establishing a connection */
+		$this->C->set_charset('utf8mb4');
+
 		if ($this->C->connect_errno) {
 			throw new \ErrorException(
 				'MySQL connection failure:  [no. '.(string)$this->C->connect_errno.'] '.$this->C->connect_error

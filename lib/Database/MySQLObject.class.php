@@ -550,7 +550,7 @@ class MySQLObject extends DatabaseObject
 				$sql = 'UPDATE `'.$this::$__dbTableName.'` SET '.implode(', ', $set).' WHERE `id`='.$this->id;
 			}
 			if($debug === true) {
-				D::console($sql);
+				D::console($sql, true);
 			}
 			if (false === $this->__dbMaster->query($sql)) {
 				throw new \Exception(

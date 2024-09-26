@@ -47,8 +47,12 @@ class _Route extends \BlazePHP\Route
 		$this->alias('/mycontroller/myaction',                 '/myController/myAction');
 		$this->alias('/mycontroller/myaction/id:$i1',          '/myAlias/%i');
 		$this->alias('/mycontroller/myaction/id:$i1/form:$i2', '/myAlias/%i/%i');
-		$this->alias('/blog/view/article:$s1/mode:$s2',        '/blog/%s/%s');
 		$this->alias('/blog/view/article:$s1',                 '/blog/%s');
+		$this->alias('/blog/view/article:$s1/mode:$s2',        '/blog/%s/%s');
+
+		$this->alias('/OrderAPI/setBIStatus/idMD5:$s1/lineId:$i1/status:$s2'
+		                                                           ,'/order/build/status/%s/%i/%s');
+
 
 		$this->noIndex('/unsubscribe');
 		$this->noIndex('/unsubscribe/');
@@ -62,6 +66,36 @@ class _Route extends \BlazePHP\Route
 
 final class RouteTest extends TestCase
 {
+
+	public function testTestManyStrings()
+	{
+		$_REQUEST['__requested_path'] = 'order/build/status/c81e728d9d4c2f636f067f89cc14862c/1/completed';
+		G::$request = new Request();
+		$route      = new _Route();
+		$this->assertValueEquals('orderapi', $route->getController());
+		$this->assertValueEquals('setbistatus', $route->getAction());
+		$parameters = $route->getParameters();
+		D::printre($parameters);
+
+	}
+
+	public function testTranslateStrings()
+	{
+		$_REQUEST['__requested_path'] = 'blog/test-article-name/edit/admin/quick';
+		G::$request = new Request();
+		$route      = new _Route();
+		$this->assertValueEquals('blog', $route->getController());
+		$this->assertValueEquals('view', $route->getAction());
+		$parameters = $route->getParameters();
+		D::printre($parameters);
+
+		$this->assertValueEquals($parameters['article'], 'test-article-name');
+		$this->assertValueEquals($parameters['mode'], 'edit');
+		$this->assertValueEquals($parameters['admin'], true);
+		$this->assertValueEquals($parameters['quick'], true);
+	}
+
+
 	public function testInstanceCreates()
 	{
 		$this->assertInstanceOf(_Route::class, new _Route());
@@ -123,21 +157,6 @@ final class RouteTest extends TestCase
 		$this->assertTrue((integer)$parameters['id'] === 203);
 	}
 
-
-	public function testTranslateStrings()
-	{
-		$_REQUEST['__requested_path'] = 'blog/test-article-name/edit/admin/quick';
-		G::$request = new Request();
-		$route      = new _Route();
-		$this->assertValueEquals('blog', $route->getController());
-		$this->assertValueEquals('view', $route->getAction());
-		$parameters = $route->getParameters();
-
-		$this->assertValueEquals($parameters['article'], 'test-article-name');
-		$this->assertValueEquals($parameters['mode'], 'edit');
-		$this->assertValueEquals($parameters['admin'], true);
-		$this->assertValueEquals($parameters['quick'], true);
-	}
 
 	public function testSEOCanonicalNoVariables()
 	{

@@ -622,6 +622,25 @@ class Form
 	}
 
 
+	/**
+	 * inputRange - Returns a range input element
+	 *
+	 * @param $name - Name of the input tag: name="$name"
+	 * @param $value - Value of the input tag: value="$value"
+	 * @param $additionalAttributes - A string of additional attributes to be placed directly in the <input> tag
+	 * @return - string
+	 */
+	public function inputRange($name, $value, $additionalAttributes=null)
+	{
+		$s = self::input($name, 'range', $name.$value);
+		$s[] = ' value="'.urlencode((string)$value).'"';
+		if(!empty($additionalAttributes)) {
+			$s[] = ' '.$additionalAttributes;
+		}
+		$s[] = '>';
+
+		return implode($s);
+	}
 
 
 

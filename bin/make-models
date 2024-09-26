@@ -126,6 +126,12 @@ $f->long        = 'omit-text-fields-as-json';
 $f->description = 'Omit the treatment text fields as JSON objects.  By default, BlazePHP treats any text field as a JSON object on storage.  To override this, set this flag.  This is useful when building models for existing software that does not use the text fields in the same way.';
 G::$cli->addFlag($f);
 
+// CLI Flag - Table is a VIEW (ommit primary key restrictions)
+$f              = new CLI\Flag();
+$f->long        = 'table-is-view';
+$f->description = 'Tables is a VIEW.  Ommit primary key restrictions on the `id` field.';
+G::$cli->addFlag($f);
+
 // Initilize the CLI
 initCLI::parse(G::$cli);
 
@@ -150,6 +156,7 @@ class O extends Struct
 	public static $conn;
 	public static $objectType;
 	public static $omitTextFieldsAsJson;
+	public static $tableIsView;
 }
 
 O::$fileHeaderLocation   = G::$cli->fileHeaderLocation;
@@ -166,6 +173,7 @@ O::$sysClassPrefix       = G::$cli->sysClassPrefix;
 O::$namespace            = G::$cli->namespace;
 O::$tablePrefix          = G::$cli->tablePrefix;
 O::$omitTextFieldsAsJson = G::$cli->omitTextFieldsAsJson;
+O::$tableIsView          = G::$cli->tableIsView;
 O::$conn                 = null; // holds the database connection information
 
 
@@ -406,7 +414,10 @@ foreach(O::$tables as $table) {
 		// Set the flag if the 'id' column is found.
 		if($columnName === 'id') {
 			$hasIDField = true;
-			if($columnInfo['auto_increment'] === 0) {
+			if(O::$tableIsView ===  true) {
+				$hasPrimaryKey = true;
+			}
+			elseif(O::$tableIsView !== true && $columnInfo['auto_increment'] === 0) {
 				if(!preg_match('/^bigint/', strtolower($columnInfo['type']))) {
 					M::error('ERROR: The [id] column type is not [bigint] for table ['.$table.'] which does not have auto_increment set.  GUID must be a bigint.', M::ADD_NEW_LINE, 'red');
 					exit;
@@ -592,6 +603,15 @@ function buildClassFile($attributes, $defaults, $primaryKeys, $notEmpties, $clas
 	$blazeObject[] = '';
 	$blazeObject[] = '		parent::__construct($id);';
 	$blazeObject[] = '	}';
+	if(O::$tableIsView === true) {
+		$blazeObject[] = '	final public function save()';
+		$blazeObject[] = '	{';
+		$blazeObject[] = '		throw new \Exception( implode(\' \', array(';
+		$blazeObject[] = '			 __CLASS__.\'::\'.__FUNCTION__';
+		$blazeObject[] = '			,\' - is a VIEW-ONLY class.\'';
+		$blazeObject[] = '		)));';
+		$blazeObject[] = '	}';
+	}
 	$blazeObject[] = '}';
 
 
@@ -625,6 +645,7 @@ function buildClassFile($attributes, $defaults, $primaryKeys, $notEmpties, $clas
 		}
 		$blazeManager[] = '		parent::__construct();';
 		$blazeManager[] = '	}';
+
 		$blazeManager[] = '}';
 
 		writeFile($className.'Manager', $blazeManager, O::$managersDir);
